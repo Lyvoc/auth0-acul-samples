@@ -7,7 +7,7 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 
 // Screen definitions (keep in sync with vite.config.ts)
-const screens = ["login-id", "login-password", "mfa"];
+const screens = ["login-id", "login-password"];
 
 async function deploy() {
   const region = "eu-north-1";
