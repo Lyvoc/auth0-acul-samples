@@ -4,7 +4,8 @@ import {
   CreateInvalidationCommand,
 } from "@aws-sdk/client-cloudfront";
 import { readFileSync } from "fs";
-import { resolve } from "path";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
 // Screen definitions (keep in sync with vite.config.ts)
 const screens = ["login-id", "login-password"];
@@ -17,6 +18,8 @@ async function deploy() {
   const distributionId = process.env.CLOUDFRONT_ID;
 
   for (const screen of screens) {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
     const distPath = resolve(__dirname, `../dist/${screen}`);
 
     // Upload assets
