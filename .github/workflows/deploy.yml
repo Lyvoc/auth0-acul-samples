@@ -32,7 +32,7 @@ jobs:
       - name: Deploy to CloudFront
         run: npm run deploy
         env:
-          S3_BUCKET: your-acul-assets
+          S3_BUCKET: auth0-acul-samples-jeremie
           CLOUDFRONT_ID: ${{ secrets.CLOUDFRONT_ID }}
           CLOUDFRONT_DOMAIN: ${{ secrets.CLOUDFRONT_DOMAIN }}
 
