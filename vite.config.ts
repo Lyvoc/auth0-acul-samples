@@ -1,19 +1,57 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import tailwindcss from '@tailwindcss/vite'
+import { resolve } from "path";
+
+// Screen definitions
+const screens = [
+  {
+    name: "login-id",
+    prompt: "login-id",
+    screen: "login-id",
+  },
+  {
+    name: "login-password",
+    prompt: "login-password",
+    screen: "login-password",
+  },
+  {
+    name: "mfa",
+    prompt: "mfa-otp",
+    screen: "mfa",
+  },
+];
+
+// Generate input object for all screens
+const input = Object.fromEntries(
+  screens.map((screen) => [
+    screen.name,
+    resolve(__dirname, `src/${screen.name}/main.tsx`),
+  ])
+);
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   build: {
-    target: "esnext",
     rollupOptions: {
+      input,
       output: {
-        entryFileNames: "index.js", // Single JavaScript output file
-        assetFileNames: "index.css", // Single CSS output file
-        manualChunks: () => "index.js", // Force single chunk
+        // Ensure each screen gets its own directory
+        dir: "dist",
+        entryFileNames: "[name]/index.js",
+        assetFileNames: "[name]/[name][extname]",
+        chunkFileNames: "[name]/chunks/[name]-[hash].js",
+        manualChunks: {
+          // Split React into a vendor chunk
+          "vendor-react": ["react", "react-dom"],
+          // Split Auth0 SDK into a vendor chunk
+          "vendor-auth0": ["@auth0/auth0-acul-js"],
+        },
       },
     },
-    cssCodeSplit: false, // Disable CSS code-splitting to bundle CSS in one file
-  }
+    // Generate sourcemaps for production debugging
+    sourcemap: true,
+    // Minify output
+    minify: "terser",
+  },
 });

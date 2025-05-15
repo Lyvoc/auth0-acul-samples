@@ -1,0 +1,99 @@
+name: Deploy ACUL Screens
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Screens
+        run: npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+
+      - name: Deploy to CloudFront
+        run: npm run deploy
+        env:
+          S3_BUCKET: your-acul-assets
+          CLOUDFRONT_ID: ${{ secrets.CLOUDFRONT_ID }}
+          CLOUDFRONT_DOMAIN: ${{ secrets.CLOUDFRONT_DOMAIN }}
+
+      - name: Setup Auth0 CLI
+        run: npm install -g auth0-cli
+
+      - name: Configure Auth0 Screens
+        run: |
+          # Login to Auth0
+          auth0 login --domain ${{ secrets.AUTH0_DOMAIN }} --client-id ${{ secrets.AUTH0_CLIENT_ID }} --client-secret ${{ secrets.AUTH0_CLIENT_SECRET }}
+
+          # Configure each screen
+          for screen in login-id login-password; do
+            # Generate settings file
+            cat > settings.json << EOF
+            {
+              "rendering_mode": "advanced",
+              "context_configuration": [
+                "screen.texts",
+                "branding.settings",
+                "organization.branding",
+                "tenant.name",
+                "tenant.friendly_name"
+              ],
+              "head_tags": [
+                {
+                  "tag": "script",
+                  "attributes": {
+                    "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/vendor-react.js",
+                    "defer": true
+                  }
+                },
+                {
+                  "tag": "script",
+                  "attributes": {
+                    "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/vendor-auth0.js",
+                    "defer": true
+                  }
+                },
+                {
+                  "tag": "script",
+                  "attributes": {
+                    "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/index.js",
+                    "defer": true
+                  }
+                },
+                {
+                  "tag": "link",
+                  "attributes": {
+                    "rel": "stylesheet",
+                    "href": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/index.css"
+                  }
+                }
+              ]
+            }
+            EOF
+
+            # Configure screen
+            auth0 ul customize \
+              --rendering-mode advanced \
+              --prompt ${screen} \
+              --screen ${screen} \
+              --settings-file settings.json
+          done
