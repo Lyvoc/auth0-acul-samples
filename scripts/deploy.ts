@@ -4,9 +4,9 @@ import {
   CloudFrontClient,
   CreateInvalidationCommand,
 } from "@aws-sdk/client-cloudfront";
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
+import { dirname, resolve, join } from "path";
 
 dotenv.config();
 
@@ -24,17 +24,16 @@ async function deploy() {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const distPath = resolve(__dirname, `../dist/${screen}`);
+    const assetsPath = resolve(__dirname, `../dist/assets`);
 
-    // Upload assets
-    const files = [
-      "index.js",
-      "index.css",
-      "vendor-react.js",
-      "vendor-auth0.js",
-    ];
-    for (const file of files) {
+    // Upload screen-specific assets
+    const screenFiles = readdirSync(distPath).filter(
+      (file) => file.endsWith(".js") || file.endsWith(".css")
+    );
+
+    for (const file of screenFiles) {
       try {
-        const content = readFileSync(`${distPath}/${file}`);
+        const content = readFileSync(join(distPath, file));
         await s3.send(
           new PutObjectCommand({
             Bucket: bucket,
@@ -46,8 +45,34 @@ async function deploy() {
             CacheControl: "max-age=31536000",
           })
         );
+        console.log(`Uploaded ${screen}/${file}`);
       } catch (err) {
         console.warn(`Skipping ${file} for ${screen}: ${err.message}`);
+      }
+    }
+
+    // Upload shared vendor assets
+    const vendorFiles = readdirSync(assetsPath).filter((file) =>
+      file.startsWith("vendor-")
+    );
+
+    for (const file of vendorFiles) {
+      try {
+        const content = readFileSync(join(assetsPath, file));
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: `${screen}/${file}`, // upload vendor chunks per screen
+            Body: content,
+            ContentType: "application/javascript",
+            CacheControl: "max-age=31536000",
+          })
+        );
+        console.log(`Uploaded ${screen}/${file} (vendor)`);
+      } catch (err) {
+        console.warn(
+          `Skipping vendor file ${file} for ${screen}: ${err.message}`
+        );
       }
     }
   }

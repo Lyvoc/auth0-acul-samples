@@ -20,9 +20,11 @@ export default defineConfig({
         // Ensure each screen gets its own directory
         dir: "dist",
         entryFileNames: "[name]/index.js",
-        assetFileNames: "[name]/[name][extname]",
+        assetFileNames: "assets/[name]-[hash][extname]", // keep assets in a dedicated folder
         manualChunks: {
+          // Split React into a vendor chunk
           "vendor-react": ["react", "react-dom"],
+          // Split Auth0 SDK into a vendor chunk
           "vendor-auth0": ["@auth0/auth0-acul-js"],
         },
       },
