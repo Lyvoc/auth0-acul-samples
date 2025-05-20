@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import {
   CloudFrontClient,
@@ -6,6 +7,8 @@ import {
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
+
+dotenv.config();
 
 // Screen definitions (keep in sync with vite.config.ts)
 const screens = ["login-id", "login-password"];
