@@ -12,21 +12,21 @@
       "tag": "script",
       "attributes": {
         "src": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/vendor-react.js",
-        "defer": true
+        "type": "module"
       }
     },
     {
       "tag": "script",
       "attributes": {
         "src": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/vendor-auth0.js",
-        "defer": true
+        "type": "module"
       }
     },
     {
       "tag": "script",
       "attributes": {
         "src": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/index.js",
-        "defer": true
+        "type": "module"
       }
     },
     {
