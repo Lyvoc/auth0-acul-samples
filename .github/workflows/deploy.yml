@@ -40,7 +40,7 @@ jobs:
           CLOUDFRONT_DOMAIN: ${{ secrets.CLOUDFRONT_DOMAIN }}
 
       - name: Setup Auth0 CLI
-        run: npm install -g auth0-cli
+        run: npm install -g auth0
 
       - name: Configure Auth0 Screens
         run: |
