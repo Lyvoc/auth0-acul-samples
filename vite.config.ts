@@ -3,13 +3,11 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
 // Screen definitions
-const screens = [{ name: "login-id" }, { name: "login-password" }];
+const screens = ["login-id", "login-password"];
 
+// Generate input object for all screens
 const input = Object.fromEntries(
-  screens.map((screen) => [
-    screen.name,
-    resolve(__dirname, `src/screens/${screen.name}/index.tsx`),
-  ])
+  screens.map((name) => [name, resolve(__dirname, `src/main.tsx`)])
 );
 
 export default defineConfig({
@@ -20,11 +18,11 @@ export default defineConfig({
       output: {
         dir: "dist",
         entryFileNames: "[name]/index.js",
-        assetFileNames: "[name]/[name][extname]",
-        chunkFileNames: "[name]/chunks/[name]-[hash].js",
-        manualChunks: {
-          "vendor-react": ["react", "react-dom"],
-          "vendor-auth0": ["@auth0/auth0-acul-js"],
+        assetFileNames: "[name]/index.css",
+        chunkFileNames: "[name]/[name].js",
+        manualChunks(id) {
+          if (id.includes("node_modules/react")) return "vendor-react";
+          if (id.includes("node_modules/@auth0")) return "vendor-auth0";
         },
       },
     },

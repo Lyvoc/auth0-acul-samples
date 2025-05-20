@@ -1,68 +1,67 @@
+import dotenv from "dotenv";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import {
   CloudFrontClient,
   CreateInvalidationCommand,
 } from "@aws-sdk/client-cloudfront";
-import { readdirSync, readFileSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve, join } from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+dotenv.config();
 
-const screens = ["login-id", "login-password", "mfa"];
+// Screen definitions (keep in sync with vite.config.ts)
+const screens = ["login-id", "login-password"];
 
 async function deploy() {
-  const s3 = new S3Client({ region: "us-east-1" });
-  const cloudfront = new CloudFrontClient({ region: "us-east-1" });
-
+  const region = "eu-north-1";
+  const s3 = new S3Client({ region });
+  const cloudfront = new CloudFrontClient({ region });
   const bucket = process.env.S3_BUCKET;
   const distributionId = process.env.CLOUDFRONT_ID;
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const distRoot = resolve(__dirname, "../dist");
 
+  // Upload all per-screen assets (index.js, index.css, etc.)
   for (const screen of screens) {
-    const distPath = resolve(__dirname, `../dist/${screen}`);
+    const screenPath = resolve(distRoot, screen);
 
-    // Upload index.js and index.css
-    const staticFiles = ["index.js", "index.css"];
-    for (const file of staticFiles) {
-      try {
-        const fullPath = join(distPath, file);
-        const content = readFileSync(fullPath);
-        await s3.send(
-          new PutObjectCommand({
-            Bucket: bucket,
-            Key: `${screen}/${file}`,
-            Body: content,
-            ContentType: file.endsWith(".js")
-              ? "application/javascript"
-              : "text/css",
-            CacheControl: "max-age=31536000",
-          })
-        );
-        console.log(`Uploaded ${screen}/${file}`);
-      } catch (err) {
-        console.warn(`Skipping ${file} for ${screen}: ${err.message}`);
-      }
-    }
+    const files = readdirSync(screenPath).filter(
+      (f) => f.endsWith(".js") || f.endsWith(".css")
+    );
 
-    // Auto-detect and upload vendor chunks
-    const chunksPath = resolve(distPath, "chunks");
-    let chunkFiles: string[] = [];
+    for (const file of files) {
+      const content = readFileSync(join(screenPath, file));
+      const contentType = file.endsWith(".js")
+        ? "application/javascript"
+        : "text/css";
 
-    try {
-      chunkFiles = readdirSync(chunksPath).filter(
-        (file) =>
-          file.startsWith("vendor-react") || file.startsWith("vendor-auth0")
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: `${screen}/${file}`,
+          Body: content,
+          ContentType: contentType,
+          CacheControl: "max-age=31536000",
+        })
       );
-    } catch (e) {
-      console.warn(
-        `No chunks folder for ${screen}, skipping vendor chunks : ${e}`
-      );
+
+      console.log(`✅ Uploaded ${screen}/${file}`);
     }
+  }
 
-    for (const file of chunkFiles) {
-      const content = readFileSync(join(chunksPath, file));
+  // Upload vendor chunks from top-level folders into each screen folder
+  const vendorSources = [
+    { folder: "vendor-auth0", file: "vendor-auth0.js" },
+    { folder: "vendor-react", file: "vendor-react.js" },
+  ];
 
+  for (const { folder, file } of vendorSources) {
+    const sourcePath = resolve(distRoot, folder, file);
+    const content = readFileSync(sourcePath);
+
+    for (const screen of screens) {
       await s3.send(
         new PutObjectCommand({
           Bucket: bucket,
@@ -72,11 +71,11 @@ async function deploy() {
           CacheControl: "max-age=31536000",
         })
       );
-      console.log(`Uploaded ${screen}/${file}`);
+      console.log(`✅ Uploaded ${file} to ${screen}/`);
     }
   }
 
-  // CloudFront invalidation
+  // Invalidate CloudFront cache
   await cloudfront.send(
     new CreateInvalidationCommand({
       DistributionId: distributionId,
@@ -87,7 +86,7 @@ async function deploy() {
     })
   );
 
-  console.log("CloudFront cache invalidated");
+  console.log("🚀 CloudFront cache invalidated");
 }
 
 deploy().catch(console.error);
