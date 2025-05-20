@@ -21,11 +21,8 @@ export default defineConfig({
         dir: "dist",
         entryFileNames: "[name]/index.js",
         assetFileNames: "[name]/[name][extname]",
-        chunkFileNames: "[name]/chunks/[name]-[hash].js",
         manualChunks: {
-          // Split React into a vendor chunk
           "vendor-react": ["react", "react-dom"],
-          // Split Auth0 SDK into a vendor chunk
           "vendor-auth0": ["@auth0/auth0-acul-js"],
         },
       },
