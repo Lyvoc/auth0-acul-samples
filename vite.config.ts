@@ -20,9 +20,9 @@ export default defineConfig({
         entryFileNames: "[name]/index.js",
         assetFileNames: "[name]/index.css",
         chunkFileNames: "[name]/[name].js",
-        manualChunks(id) {
-          if (id.includes("node_modules/react")) return "vendor-react";
-          if (id.includes("node_modules/@auth0")) return "vendor-auth0";
+        manualChunks: {
+          "vendor-react": ["react", "react-dom"],
+          "vendor-auth0": ["@auth0/auth0-acul-js"],
         },
       },
     },
