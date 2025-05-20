@@ -15,70 +15,43 @@ const screens = ["login-id", "login-password"];
 
 async function deploy() {
   const region = "eu-north-1";
-  const s3 = new S3Client({ region: region });
-  const cloudfront = new CloudFrontClient({ region: region });
+  const s3 = new S3Client({ region });
+  const cloudfront = new CloudFrontClient({ region });
   const bucket = process.env.S3_BUCKET;
   const distributionId = process.env.CLOUDFRONT_ID;
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const distRoot = resolve(__dirname, "../dist");
 
   for (const screen of screens) {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const distPath = resolve(__dirname, `../dist/${screen}`);
-    const assetsPath = resolve(__dirname, `../dist/assets`);
+    const screenPath = resolve(distRoot, screen);
 
-    // Upload screen-specific assets
-    const screenFiles = readdirSync(distPath).filter(
-      (file) => file.endsWith(".js") || file.endsWith(".css")
+    // Upload all JS and CSS in the screen folder
+    const files = readdirSync(screenPath).filter(
+      (f) => f.endsWith(".js") || f.endsWith(".css")
     );
 
-    for (const file of screenFiles) {
-      try {
-        const content = readFileSync(join(distPath, file));
-        await s3.send(
-          new PutObjectCommand({
-            Bucket: bucket,
-            Key: `${screen}/${file}`,
-            Body: content,
-            ContentType: file.endsWith(".js")
-              ? "application/javascript"
-              : "text/css",
-            CacheControl: "max-age=31536000",
-          })
-        );
-        console.log(`Uploaded ${screen}/${file}`);
-      } catch (err) {
-        console.warn(`Skipping ${file} for ${screen}: ${err.message}`);
-      }
-    }
+    for (const file of files) {
+      const content = readFileSync(join(screenPath, file));
+      const contentType = file.endsWith(".js")
+        ? "application/javascript"
+        : "text/css";
 
-    // Upload shared vendor assets from dist root (vendor-auth0.js, vendor-react.js)
-    const distRoot = resolve(__dirname, "../dist");
-    const vendorFiles = readdirSync(distRoot).filter(
-      (file) => file.startsWith("vendor-") && file.endsWith(".js")
-    );
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: `${screen}/${file}`,
+          Body: content,
+          ContentType: contentType,
+          CacheControl: "max-age=31536000",
+        })
+      );
 
-    for (const file of vendorFiles) {
-      try {
-        const content = readFileSync(join(distRoot, file));
-        for (const screen of screens) {
-          await s3.send(
-            new PutObjectCommand({
-              Bucket: bucket,
-              Key: `${screen}/${file}`,
-              Body: content,
-              ContentType: "application/javascript",
-              CacheControl: "max-age=31536000",
-            })
-          );
-          console.log(`Uploaded ${screen}/${file} (vendor)`);
-        }
-      } catch (err) {
-        console.warn(`Skipping vendor file ${file}: ${err.message}`);
-      }
+      console.log(`✅ Uploaded ${screen}/${file}`);
     }
   }
 
-  // Invalidate cache
+  // Invalidate CloudFront cache
   await cloudfront.send(
     new CreateInvalidationCommand({
       DistributionId: distributionId,

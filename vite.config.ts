@@ -17,22 +17,25 @@ export default defineConfig({
     rollupOptions: {
       input,
       output: {
-        // Ensure each screen gets its own directory
+        // One folder per screen
         dir: "dist",
         entryFileNames: "[name]/index.js",
         assetFileNames: "[name]/index.css",
-        chunkFileNames: "[name].js",
+        chunkFileNames: (chunkInfo) => {
+          // Force known chunk names into screen folders
+          if (chunkInfo.name === "vendor-react")
+            return "[name]/vendor-react.js";
+          if (chunkInfo.name === "vendor-auth0")
+            return "[name]/vendor-auth0.js";
+          return "[name]/[name].js"; // fallback
+        },
         manualChunks: {
-          // Split React into a vendor chunk
           "vendor-react": ["react", "react-dom"],
-          // Split Auth0 SDK into a vendor chunk
           "vendor-auth0": ["@auth0/auth0-acul-js"],
         },
       },
     },
-    // Generate sourcemaps for production debugging
     sourcemap: true,
-    // Minify output
     minify: "terser",
     emptyOutDir: true,
   },
