@@ -1,0 +1,40 @@
+{
+  "rendering_mode": "advanced",
+  "context_configuration": [
+    "screen.texts",
+    "branding.settings",
+    "organization.branding",
+    "tenant.name",
+    "tenant.friendly_name"
+  ],
+  "head_tags": [
+    {
+      "tag": "script",
+      "attributes": {
+        "src": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/vendor-react.js",
+        "defer": true
+      }
+    },
+    {
+      "tag": "script",
+      "attributes": {
+        "src": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/vendor-auth0.js",
+        "defer": true
+      }
+    },
+    {
+      "tag": "script",
+      "attributes": {
+        "src": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/index.js",
+        "defer": true
+      }
+    },
+    {
+      "tag": "link",
+      "attributes": {
+        "rel": "stylesheet",
+        "href": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/index.css"
+      }
+    }
+  ]
+}
