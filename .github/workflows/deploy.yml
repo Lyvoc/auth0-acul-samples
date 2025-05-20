@@ -55,47 +55,47 @@ jobs:
           for screen in login-id login-password; do
             # Generate settings file
             cat > settings.json << EOF
-            {
-              "rendering_mode": "advanced",
-              "context_configuration": [
-                "screen.texts",
-                "branding.settings",
-                "organization.branding",
-                "tenant.name",
-                "tenant.friendly_name"
-              ],
-              "head_tags": [
-                {
-                  "tag": "script",
-                  "attributes": {
-                    "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/vendor-react.js",
-                    "defer": true
-                  }
-                },
-                {
-                  "tag": "script",
-                  "attributes": {
-                    "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/vendor-auth0.js",
-                    "defer": true
-                  }
-                },
-                {
-                  "tag": "script",
-                  "attributes": {
-                    "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/index.js",
-                    "defer": true
-                  }
-                },
-                {
-                  "tag": "link",
-                  "attributes": {
-                    "rel": "stylesheet",
-                    "href": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/index.css"
-                  }
-                }
-              ]
-            }
-            EOF
+{
+  "rendering_mode": "advanced",
+  "context_configuration": [
+    "screen.texts",
+    "branding.settings",
+    "organization.branding",
+    "tenant.name",
+    "tenant.friendly_name"
+  ],
+  "head_tags": [
+    {
+      "tag": "script",
+      "attributes": {
+        "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/vendor-react.js",
+        "defer": true
+      }
+    },
+    {
+      "tag": "script",
+      "attributes": {
+        "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/vendor-auth0.js",
+        "defer": true
+      }
+    },
+    {
+      "tag": "script",
+      "attributes": {
+        "src": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/index.js",
+        "defer": true
+      }
+    },
+    {
+      "tag": "link",
+      "attributes": {
+        "rel": "stylesheet",
+        "href": "https://${{ secrets.CLOUDFRONT_DOMAIN }}/${screen}/index.css"
+      }
+    }
+  ]
+}
+EOF
 
             # Configure screen
             auth0 ul customize \
