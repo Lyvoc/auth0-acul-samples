@@ -20,7 +20,7 @@ const screens = [
 const input = Object.fromEntries(
   screens.map((screen) => [
     screen.name,
-    resolve(__dirname, `src/screens/${screen.name}/index.tsx`),
+    resolve(__dirname, `src/screens/${screen.name}/index.html`),
   ])
 );
 
