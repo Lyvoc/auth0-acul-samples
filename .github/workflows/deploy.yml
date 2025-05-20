@@ -52,7 +52,7 @@ jobs:
                       --client-secret ${{ secrets.AUTH0_CLIENT_SECRET }}
 
           # Configure each screen
-          for screen in login-id login-password mfa; do
+          for screen in login-id login-password; do
             # Generate settings file
             cat > settings.json << EOF
             {
