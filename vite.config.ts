@@ -3,25 +3,11 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
 // Screen definitions
-const screens = [
-  {
-    name: "login-id",
-    prompt: "login-id",
-    screen: "login-id",
-  },
-  {
-    name: "login-password",
-    prompt: "login-password",
-    screen: "login-password",
-  },
-];
+const screens = ["login-id", "login-password"];
 
 // Generate input object for all screens
 const input = Object.fromEntries(
-  screens.map((screen) => [
-    screen.name,
-    resolve(__dirname, `src/screens/${screen.name}/index.html`),
-  ])
+  screens.map((name) => [name, resolve(__dirname, `src/main.tsx`)])
 );
 
 // https://vite.dev/config/
@@ -48,5 +34,6 @@ export default defineConfig({
     sourcemap: true,
     // Minify output
     minify: "terser",
+    emptyOutDir: true,
   },
 });
