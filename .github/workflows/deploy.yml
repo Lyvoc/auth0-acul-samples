@@ -39,8 +39,10 @@ jobs:
           CLOUDFRONT_ID: ${{ secrets.CLOUDFRONT_ID }}
           CLOUDFRONT_DOMAIN: ${{ secrets.CLOUDFRONT_DOMAIN }}
 
-      - name: Setup Auth0 CLI
-        run: npm install -g auth0
+      - name: Install Auth0 CLI
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/auth0/auth0-cli/main/install.sh | sh -s -- -b .
+          sudo mv ./auth0 /usr/local/bin
 
       - name: Configure Auth0 Screens
         run: |
