@@ -18,7 +18,7 @@
     {
       "tag": "script",
       "attributes": {
-        "src": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/vendor-react.js",
+        "src": "https://{{CLOUDFRONT_DOMAIN}}/{{SCREEN}}/vendor-auth0.js",
         "type": "module"
       }
     },
