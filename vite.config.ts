@@ -21,7 +21,7 @@ export default defineConfig({
         dir: "dist",
         entryFileNames: "[name]/index.js",
         assetFileNames: "[name]/index.css",
-        chunkFileNames: "[name]/[name].js",
+        chunkFileNames: "[name].js",
         manualChunks: {
           // Split React into a vendor chunk
           "vendor-react": ["react", "react-dom"],
