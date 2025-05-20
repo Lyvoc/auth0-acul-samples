@@ -23,10 +23,10 @@ async function deploy() {
   const __dirname = dirname(__filename);
   const distRoot = resolve(__dirname, "../dist");
 
+  // Upload all per-screen assets (index.js, index.css, etc.)
   for (const screen of screens) {
     const screenPath = resolve(distRoot, screen);
 
-    // Upload all JS and CSS in the screen folder
     const files = readdirSync(screenPath).filter(
       (f) => f.endsWith(".js") || f.endsWith(".css")
     );
@@ -51,6 +51,30 @@ async function deploy() {
     }
   }
 
+  // Upload vendor chunks from top-level folders into each screen folder
+  const vendorSources = [
+    { folder: "vendor-auth0", file: "vendor-auth0.js" },
+    { folder: "vendor-react", file: "vendor-react.js" },
+  ];
+
+  for (const { folder, file } of vendorSources) {
+    const sourcePath = resolve(distRoot, folder, file);
+    const content = readFileSync(sourcePath);
+
+    for (const screen of screens) {
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: `${screen}/${file}`,
+          Body: content,
+          ContentType: "application/javascript",
+          CacheControl: "max-age=31536000",
+        })
+      );
+      console.log(`✅ Uploaded ${file} to ${screen}/`);
+    }
+  }
+
   // Invalidate CloudFront cache
   await cloudfront.send(
     new CreateInvalidationCommand({
@@ -61,6 +85,8 @@ async function deploy() {
       },
     })
   );
+
+  console.log("🚀 CloudFront cache invalidated");
 }
 
 deploy().catch(console.error);
