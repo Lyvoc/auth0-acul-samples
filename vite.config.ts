@@ -20,7 +20,7 @@ export default defineConfig({
         // Ensure each screen gets its own directory
         dir: "dist",
         entryFileNames: "[name]/index.js",
-        assetFileNames: "assets/[name]-[hash][extname]", // keep assets in a dedicated folder
+        assetFileNames: "[name]/index.css",
         manualChunks: {
           // Split React into a vendor chunk
           "vendor-react": ["react", "react-dom"],
