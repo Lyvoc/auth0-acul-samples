@@ -52,27 +52,33 @@ async function deploy() {
     }
 
     // Upload shared vendor assets
-    const vendorFiles = readdirSync(assetsPath).filter((file) =>
-      file.startsWith("vendor-")
-    );
+    const vendorDirs = ["vendor-react", "vendor-auth0"];
+    for (const vendorDir of vendorDirs) {
+      const vendorPath = resolve(__dirname, `../dist/${vendorDir}`);
+      const vendorFiles = readdirSync(vendorPath).filter((file) =>
+        file.endsWith(".js")
+      );
 
-    for (const file of vendorFiles) {
-      try {
-        const content = readFileSync(join(assetsPath, file));
-        await s3.send(
-          new PutObjectCommand({
-            Bucket: bucket,
-            Key: `${screen}/${file}`, // upload vendor chunks per screen
-            Body: content,
-            ContentType: "application/javascript",
-            CacheControl: "max-age=31536000",
-          })
-        );
-        console.log(`Uploaded ${screen}/${file} (vendor)`);
-      } catch (err) {
-        console.warn(
-          `Skipping vendor file ${file} for ${screen}: ${err.message}`
-        );
+      for (const file of vendorFiles) {
+        try {
+          const content = readFileSync(join(vendorPath, file));
+          for (const screen of screens) {
+            await s3.send(
+              new PutObjectCommand({
+                Bucket: bucket,
+                Key: `${screen}/${file}`, // upload same file into each screen's path
+                Body: content,
+                ContentType: "application/javascript",
+                CacheControl: "max-age=31536000",
+              })
+            );
+            console.log(`Uploaded ${screen}/${file} (vendor)`);
+          }
+        } catch (err) {
+          console.warn(
+            `Skipping vendor file ${file} in ${vendorDir}: ${err.message}`
+          );
+        }
       }
     }
   }
