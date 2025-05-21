@@ -61,6 +61,7 @@ export default function App() {
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-gray-950">
       <button className="form-button mt-4">Native Test Button</button>
+      <button className="test-button">Debug Button</button>
 
       <form
         noValidate
