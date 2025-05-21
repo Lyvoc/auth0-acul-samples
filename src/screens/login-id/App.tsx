@@ -62,6 +62,9 @@ export default function App() {
     <div className="h-screen w-screen flex items-center justify-center bg-gray-950">
       <button className="form-button mt-4">Native Test Button</button>
       <button className="test-button">Debug Button</button>
+      <div className="bg-red-500 text-white p-4 rounded-md">
+        🔥 Tailwind test
+      </div>
 
       <form
         noValidate
