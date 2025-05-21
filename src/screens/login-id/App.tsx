@@ -58,7 +58,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-gray-950">
+    <div className="app-container">
       <button className="form-button mt-4">Native Test Button</button>
       <button className="test-button">Debug Button</button>
       <div className="bg-red-500 text-white p-4 rounded-md">

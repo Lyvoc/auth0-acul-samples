@@ -1,19 +1,29 @@
-@layer base {
-  html,
-  body {
-    height: 100%;
-    width: 100%;
-    @apply m-0 p-0 bg-gray-950 text-black;
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #0f172a; /* bg-gray-950 */
+  color: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
 
-  body {
-    display: flex !important;
-    flex-direction: column;
-    align-items: center !important;
-    justify-content: center !important;
-  }
+#root {
+  width: 100%;
+  max-width: 28rem; /* ~max-w-md */
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
 
-  #root {
-    @apply w-full max-w-md px-4;
-  }
+.app-container {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #0f172a;
 }

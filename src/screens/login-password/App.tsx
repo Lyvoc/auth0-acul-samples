@@ -54,12 +54,14 @@ export default function App() {
   const identifier = screenProvider.screen.data?.username ?? "";
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-gray-950">
+    <div className="app-container">
       <form
         noValidate
         onSubmit={formSubmitHandler}
         className="bg-white text-black rounded-2xl shadow-2xl p-8 w-full max-w-md"
       >
+        <div className="test-css-inclusion">Force CSS inclusion</div>
+
         <CardHeader>
           <CardTitle className="mb-4 text-3xl font-bold text-center text-black">
             {texts.title}
