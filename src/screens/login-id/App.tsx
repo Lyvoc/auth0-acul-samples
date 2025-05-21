@@ -59,50 +59,54 @@ export default function App() {
   }
 
   return (
-    <form
-      noValidate
-      onSubmit={formSubmitHandler}
-      className="bg-white text-black rounded-2xl shadow-2xl p-8 w-full max-w-md"
-    >
-      <CardHeader>
-        <CardTitle className="mb-4 text-3xl font-bold text-center text-black">
-          {texts.title}
-        </CardTitle>
-        <CardDescription className="mb-6 text-center text-gray-600">
-          {texts.description}
-        </CardDescription>
-      </CardHeader>
+    <div className="h-screen w-screen flex items-center justify-center bg-gray-950">
+      <button className="form-button mt-4">Native Test Button</button>
 
-      <CardContent>
-        <div className="mb-6">
-          <Label htmlFor="identifier" className="form-label">
-            {texts.emailPlaceholder}
-          </Label>
-          <Input
-            type="text"
-            id="identifier"
-            name="identifier"
-            defaultValue={identifierDefaultValue}
-            placeholder="john@example.com"
-            aria-label={texts.emailPlaceholder}
-            className="form-input"
-          />
-        </div>
+      <form
+        noValidate
+        onSubmit={formSubmitHandler}
+        className="bg-white text-black rounded-2xl shadow-2xl p-8 w-full max-w-md"
+      >
+        <CardHeader>
+          <CardTitle className="mb-4 text-3xl font-bold text-center text-black">
+            {texts.title}
+          </CardTitle>
+          <CardDescription className="mb-6 text-center text-gray-600">
+            {texts.description}
+          </CardDescription>
+        </CardHeader>
 
-        <Button type="submit" className="form-button">
-          {texts.buttonText}
-        </Button>
+        <CardContent>
+          <div className="mb-6">
+            <Label htmlFor="identifier" className="form-label">
+              {texts.emailPlaceholder}
+            </Label>
+            <Input
+              type="text"
+              id="identifier"
+              name="identifier"
+              defaultValue={identifierDefaultValue}
+              placeholder="john@example.com"
+              aria-label={texts.emailPlaceholder}
+              className="form-input"
+            />
+          </div>
 
-        <Text className="form-text mt-6">
-          {texts.footerText}
-          <Link
-            className="form-link"
-            href={screenProvider.screen.signupLink ?? "#"}
-          >
-            {texts.footerLinkText}
-          </Link>
-        </Text>
-      </CardContent>
-    </form>
+          <Button type="submit" className="form-button">
+            {texts.buttonText}
+          </Button>
+
+          <Text className="form-text mt-6">
+            {texts.footerText}
+            <Link
+              className="form-link"
+              href={screenProvider.screen.signupLink ?? "#"}
+            >
+              {texts.footerLinkText}
+            </Link>
+          </Text>
+        </CardContent>
+      </form>
+    </div>
   );
 }
