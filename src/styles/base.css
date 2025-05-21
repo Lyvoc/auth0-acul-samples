@@ -20,4 +20,8 @@
   body {
     @apply flex items-center justify-center p-4;
   }
+
+  .test-base-file {
+    @apply bg-yellow-200 text-black p-4;
+  }
 }

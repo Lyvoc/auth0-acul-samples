@@ -2,17 +2,17 @@ import { useRef, ChangeEvent } from "react";
 import { LoginId as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
-import Button from "../../common/Button";
-import { Label } from "../../common/Label";
-import { Input } from "../../common/Input";
-import { Text } from "../../common/Text";
-import { Link } from "../../common/Link";
+import Button from "../../components/Button";
+import { Label } from "../../components/Label";
+import { Input } from "../../components/Input";
+import { Text } from "../../components/Text";
+import { Link } from "../../components/Link";
 import {
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "../../common/Card";
+} from "../../components/Card";
 
 export default function App() {
   const screenProviderRef = useRef<ScreenProvider>(new ScreenProvider());
@@ -52,8 +52,11 @@ export default function App() {
   return (
     
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <div className="bg-pink-500 text-white p-4 font-bold">Tailwind Test</div>
-
+<div className="space-y-4">
+  <div className="test-base-file">Base.css is working</div>
+  <div className="test-components-file">Components.css is working</div>
+  <div className="test-forms-file">Forms.css is working</div>
+</div>
       <form noValidate onSubmit={formSubmitHandler} className="max-w-md w-full p-6 bg-white rounded-2xl shadow-lg">
         <CardHeader>
           <CardTitle className="mb-2 text-3xl font-medium text-center text-black">

@@ -18,4 +18,8 @@
   .form-link {
     @apply text-blue-600 hover:underline ml-1;
   }
+
+  .test-forms-file {
+    @apply bg-blue-200 text-black p-4;
+  }
 }
