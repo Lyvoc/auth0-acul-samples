@@ -9,7 +9,7 @@ const screens = ["login-id", "login-password"];
 const input = Object.fromEntries(
   screens.map((screen) => [
     screen,
-    resolve(__dirname, `src/${screen}/main.tsx`),
+    resolve(__dirname, `src/screens/${screen}/main.tsx`),
   ])
 );
 
