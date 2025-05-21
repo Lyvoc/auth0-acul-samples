@@ -7,7 +7,10 @@ const screens = ["login-id", "login-password"];
 
 // Generate input object for all screens
 const input = Object.fromEntries(
-  screens.map((name) => [name, resolve(__dirname, `src/${screens}/main.tsx`)])
+  screens.map((screen) => [
+    screen,
+    resolve(__dirname, `src/${screen}/main.tsx`),
+  ])
 );
 
 export default defineConfig({
