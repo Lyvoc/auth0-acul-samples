@@ -3,11 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  html,
   body {
-    @apply bg-gray-950 m-0 p-0;
+    @apply min-h-screen w-full m-0 p-0 bg-gray-950 text-black font-sans antialiased;
+  }
+
+  body {
+    @apply flex items-center justify-center; /* 🔥 This is what you're missing */
   }
 
   #root {
-    @apply min-h-screen flex items-center justify-center;
+    @apply w-full; /* Let your root fill the space inside body */
   }
 }
