@@ -3,18 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
-
-  html,
   body {
-    @apply h-full w-full m-0 p-0 bg-gray-950 text-black font-sans antialiased;
+    @apply bg-gray-950 m-0 p-0;
   }
 
   #root {
-    @apply h-full flex items-center justify-center;
+    @apply min-h-screen flex items-center justify-center;
   }
 }
