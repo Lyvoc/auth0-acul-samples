@@ -5,16 +5,19 @@
 @layer base {
   html,
   body {
-    @apply min-h-screen m-0 p-0 w-full bg-gray-950 text-black;
+    height: 100%;
+    width: 100%;
+    @apply m-0 p-0 bg-gray-950 text-black;
   }
 
   body {
     display: flex !important;
+    flex-direction: column;
     align-items: center !important;
     justify-content: center !important;
   }
 
   #root {
-    @apply w-full max-w-screen-md p-4;
+    @apply w-full max-w-md px-4;
   }
 }

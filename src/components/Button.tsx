@@ -1,25 +1,19 @@
+// components/Button.tsx
+import { ButtonHTMLAttributes, ReactNode } from "react";
 
-import React from "react";
-
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /**
-   * The content of the button.
-   */
-  children: React.ReactNode;
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
+  children?: ReactNode;
 }
 
-const Button: React.FC<ButtonProps> = ({
+export default function Button({
+  className = "",
   children,
-  type = "button",
-  disabled,
-  ...rest
-}) => {
+  ...props
+}: Readonly<ButtonProps>) {
   return (
-    <button type={type} disabled={disabled} aria-disabled={disabled} {...rest}>
+    <button className={`form-button ${className}`} {...props}>
       {children}
     </button>
   );
-};
-
-export default Button;
+}
