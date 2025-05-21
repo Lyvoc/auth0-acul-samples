@@ -50,25 +50,24 @@ export default function App() {
   }
 
   return (
-    
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
-<div className="space-y-4">
-  <div className="test-base-file">Base.css is working</div>
-  <div className="test-components-file">Components.css is working</div>
-  <div className="test-forms-file">Forms.css is working</div>
-</div>
-      <form noValidate onSubmit={formSubmitHandler} className="max-w-md w-full p-6 bg-white rounded-2xl shadow-lg">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-950 px-4">
+      <form
+        noValidate
+        onSubmit={formSubmitHandler}
+        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
+      >
         <CardHeader>
-          <CardTitle className="mb-2 text-3xl font-medium text-center text-black">
+          <CardTitle className="mb-2 text-3xl font-bold text-center text-gray-900">
             {texts.title}
           </CardTitle>
-          <CardDescription className="mb-8 text-center text-gray-600">
+          <CardDescription className="mb-6 text-center text-gray-600">
             {texts.description}
           </CardDescription>
         </CardHeader>
+
         <CardContent>
-          <div className="mb-4 space-y-2">
-            <Label htmlFor="identifier" className="text-black">
+          <div className="mb-4">
+            <Label htmlFor="identifier" className="form-label">
               {texts.emailPlaceholder}
             </Label>
             <Input
@@ -76,23 +75,23 @@ export default function App() {
               id="identifier"
               name="identifier"
               defaultValue={identifierDefaultValue}
+              placeholder="john@example.com"
               aria-label={texts.emailPlaceholder}
-              className="w-full"
+              className="form-input"
             />
           </div>
-          <Button type="submit" className="w-full">
+
+          <Button type="submit" className="form-button mt-4">
             {texts.buttonText}
           </Button>
-          <Text className="mt-4 text-center text-sm text-gray-700">
+
+          <Text className="form-text mt-6">
             {texts.footerText}
-            <Link className="ml-1 text-blue-600 hover:underline" href={screenProvider.screen.signupLink ?? "#"}>
+            <Link
+              className="form-link"
+              href={screenProvider.screen.signupLink ?? "#"}
+            >
               {texts.footerLinkText}
-            </Link>
-          </Text>
-          <Text className="mt-2 text-center text-sm text-gray-700">
-            Need Help?
-            <Link className="ml-1 text-blue-600 hover:underline" href={screenProvider.screen.resetPasswordLink ?? "#"}>
-              {texts.forgottenPasswordText}
             </Link>
           </Text>
         </CardContent>
