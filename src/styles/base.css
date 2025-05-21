@@ -3,26 +3,18 @@
 @tailwind utilities;
 
 @layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
   html,
   body {
-    height: 100%;
-    width: 100%;
-    @apply bg-gray-950 text-black font-sans;
+    @apply min-h-screen m-0 p-0 w-full bg-gray-950 text-black;
+  }
+
+  body {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   #root {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
+    @apply w-full max-w-screen-md p-4;
   }
 }
