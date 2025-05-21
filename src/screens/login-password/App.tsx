@@ -14,8 +14,8 @@ import {
 } from "../../components/Card";
 
 export default function App() {
-  const screenProviderRef = useRef<ScreenProvider>(new ScreenProvider());
-  const screenProvider = screenProviderRef.current;
+  const screenProvider = new ScreenProvider();
+  console.log("screenProvider: ", screenProvider);
 
   const texts = {
     title: screenProvider.screen.texts?.title ?? "Enter Your Password",
