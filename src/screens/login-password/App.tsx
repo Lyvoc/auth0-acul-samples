@@ -21,12 +21,18 @@ export default function App() {
 
   const texts = {
     title: screenProvider.screen.texts?.title ?? "Welcome",
-    description: screenProvider.screen.texts?.description ?? "Login to continue",
-    emailPlaceholder: screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
+    description:
+      screenProvider.screen.texts?.description ?? "Login to continue",
+    emailPlaceholder:
+      screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
     buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
-    footerText: screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
-    footerLinkText: screenProvider.screen.texts?.footerLinkText ?? "Create your account",
-    forgottenPasswordText: screenProvider.screen.texts?.forgottenPasswordText ?? "Forgot your Password?",
+    footerText:
+      screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
+    footerLinkText:
+      screenProvider.screen.texts?.footerLinkText ?? "Create your account",
+    forgottenPasswordText:
+      screenProvider.screen.texts?.forgottenPasswordText ??
+      "Forgot your Password?",
   };
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
@@ -45,14 +51,20 @@ export default function App() {
   let identifierDefaultValue = "";
   if (typeof screenProvider.screen.data?.username === "string") {
     identifierDefaultValue = screenProvider.screen.data.username;
-  } else if (typeof screenProvider.untrustedData.submittedFormData?.username === "string") {
-    identifierDefaultValue = screenProvider.untrustedData.submittedFormData.username;
+  } else if (
+    typeof screenProvider.untrustedData.submittedFormData?.username === "string"
+  ) {
+    identifierDefaultValue =
+      screenProvider.untrustedData.submittedFormData.username;
   }
 
   return (
-    
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <form noValidate onSubmit={formSubmitHandler} className="max-w-md w-full p-6 bg-white rounded-2xl shadow-lg">
+      <form
+        noValidate
+        onSubmit={formSubmitHandler}
+        className="max-w-md w-full p-6 bg-white rounded-2xl shadow-lg"
+      >
         <CardHeader>
           <CardTitle className="mb-2 text-3xl font-medium text-center text-black">
             {texts.title}
@@ -78,14 +90,20 @@ export default function App() {
           <Button type="submit" className="w-full">
             {texts.buttonText}
           </Button>
-          <Text className="mt-4 text-center text-sm text-gray-700">
+          <Text className="mt-4 text-center text-sm text-black">
             {texts.footerText}
-            <Link className="ml-1 text-blue-600 hover:underline" href={screenProvider.screen.signupLink ?? "#"}>
+            <Link
+              className="ml-1 text-blue-600 hover:underline"
+              href={screenProvider.screen.signupLink ?? "#"}
+            >
               {texts.footerLinkText}
             </Link>
           </Text>
-          <Text className="mt-2 text-center text-sm text-gray-700">
-            <Link className="ml-1 text-blue-600 hover:underline" href={screenProvider.screen.resetPasswordLink ?? "#"}>
+          <Text className="mt-2 text-center text-sm text-black">
+            <Link
+              className="ml-1 text-blue-600 hover:underline"
+              href={screenProvider.screen.resetPasswordLink ?? "#"}
+            >
               {texts.forgottenPasswordText}
             </Link>
           </Text>
