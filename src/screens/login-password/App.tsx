@@ -1,7 +1,6 @@
-import { useRef, ChangeEvent } from "react";
-import { LoginId as ScreenProvider } from "@auth0/auth0-acul-js";
+import { ChangeEvent, useRef } from "react";
+import { LoginPassword as ScreenProvider } from "@auth0/auth0-acul-js";
 
-// UI Components
 import Button from "../../components/Button";
 import { Label } from "../../components/Label";
 import { Input } from "../../components/Input";
@@ -17,22 +16,19 @@ import {
 export default function App() {
   const screenProviderRef = useRef<ScreenProvider>(new ScreenProvider());
   const screenProvider = screenProviderRef.current;
-  console.log("screenProvider: ", screenProvider);
 
   const texts = {
-    title: screenProvider.screen.texts?.title ?? "Welcome",
+    title: screenProvider.screen.texts?.title ?? "Enter Your Password",
     description:
-      screenProvider.screen.texts?.description ?? "Login to continue",
-    emailPlaceholder:
-      screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
+      screenProvider.screen.texts?.description ??
+      "Enter your password to continue",
+    passwordPlaceholder:
+      screenProvider.screen.texts?.passwordPlaceholder ?? "Password",
     buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
-    footerText:
-      screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
-    footerLinkText:
-      screenProvider.screen.texts?.footerLinkText ?? "Create your account",
     forgottenPasswordText:
       screenProvider.screen.texts?.forgottenPasswordText ??
       "Forgot your Password?",
+    editEmailText: screenProvider.screen.texts?.editEmailText ?? "Edit Email",
   };
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
@@ -40,68 +36,78 @@ export default function App() {
     const identifierInput = event.target.querySelector(
       "input#identifier"
     ) as HTMLInputElement;
+    const passwordInput = event.target.querySelector(
+      "input#password"
+    ) as HTMLInputElement;
 
     try {
-      await screenProvider.login({ username: identifierInput?.value });
+      await screenProvider.login({
+        username: identifierInput?.value,
+        password: passwordInput?.value,
+      });
     } catch (error) {
       console.error("Login failed:", error);
     }
   };
 
-  let identifierDefaultValue = "";
-  if (typeof screenProvider.screen.data?.username === "string") {
-    identifierDefaultValue = screenProvider.screen.data.username;
-  } else if (
-    typeof screenProvider.untrustedData.submittedFormData?.username === "string"
-  ) {
-    identifierDefaultValue =
-      screenProvider.untrustedData.submittedFormData.username;
-  }
+  const identifier = screenProvider.screen.data?.username ?? "";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+    <div className="h-screen w-screen flex items-center justify-center bg-gray-950">
       <form
         noValidate
         onSubmit={formSubmitHandler}
-        className="max-w-md w-full p-6 bg-white rounded-2xl shadow-lg"
+        className="bg-white text-black rounded-2xl shadow-2xl p-8 w-full max-w-md"
       >
         <CardHeader>
-          <CardTitle className="mb-2 text-3xl font-medium text-center text-black">
+          <CardTitle className="mb-4 text-3xl font-bold text-center text-black">
             {texts.title}
           </CardTitle>
-          <CardDescription className="mb-8 text-center text-gray-600">
+          <CardDescription className="mb-6 text-center text-gray-600">
             {texts.description}
           </CardDescription>
         </CardHeader>
+
         <CardContent>
-          <div className="mb-4 space-y-2">
-            <Label htmlFor="identifier" className="text-black">
-              {texts.emailPlaceholder}
-            </Label>
-            <Input
-              type="text"
-              id="identifier"
-              name="identifier"
-              defaultValue={identifierDefaultValue}
-              aria-label={texts.emailPlaceholder}
-              className="w-full"
-            />
-          </div>
-          <Button type="submit" className="w-full">
-            {texts.buttonText}
-          </Button>
-          <Text className="mt-4 text-center text-sm text-black">
-            {texts.footerText}
+          <Text className="form-text mb-4">
+            <span className="inline-block">Log in as </span>
+            <span className="inline-block ml-1 font-bold">{identifier}</span>
             <Link
-              className="ml-1 text-blue-600 hover:underline"
-              href={screenProvider.screen.signupLink ?? "#"}
+              className="form-link ml-2"
+              href={screenProvider.screen.editIdentifierLink ?? "#"}
             >
-              {texts.footerLinkText}
+              {texts.editEmailText}
             </Link>
           </Text>
-          <Text className="mt-2 text-center text-sm text-black">
+
+          <Input
+            type="hidden"
+            name="identifier"
+            id="identifier"
+            value={identifier}
+          />
+
+          <div className="mb-6">
+            <Label htmlFor="password" className="form-label">
+              {texts.passwordPlaceholder}
+            </Label>
+            <Input
+              type="password"
+              id="password"
+              name="password"
+              className="form-input"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <Button type="submit" className="form-button">
+            {texts.buttonText}
+          </Button>
+
+          <Text className="form-text mt-6">
+            Need Help?
             <Link
-              className="ml-1 text-blue-600 hover:underline"
+              className="form-link"
               href={screenProvider.screen.resetPasswordLink ?? "#"}
             >
               {texts.forgottenPasswordText}
