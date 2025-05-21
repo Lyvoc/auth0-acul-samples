@@ -1,4 +1,4 @@
-import { ChangeEvent, useRef } from "react";
+import { ChangeEvent } from "react";
 import { LoginPassword as ScreenProvider } from "@auth0/auth0-acul-js";
 
 import Button from "../../components/Button";

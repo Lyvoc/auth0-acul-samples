@@ -1,4 +1,4 @@
-import { useRef, ChangeEvent } from "react";
+import { ChangeEvent } from "react";
 import { LoginId as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
