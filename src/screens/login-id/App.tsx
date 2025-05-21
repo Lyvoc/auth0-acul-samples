@@ -59,7 +59,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-950">
+    <div className="min-h-screen w-full bg-gray-950 text-black flex items-center justify-center px-4">
       <form
         noValidate
         onSubmit={formSubmitHandler}
