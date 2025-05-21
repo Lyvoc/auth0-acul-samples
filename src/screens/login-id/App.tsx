@@ -17,6 +17,7 @@ import {
 export default function App() {
   const screenProviderRef = useRef<ScreenProvider>(new ScreenProvider());
   const screenProvider = screenProviderRef.current;
+  console.log("screenProvider: ", screenProvider);
 
   const texts = {
     title: screenProvider.screen.texts?.title ?? "Welcome",
@@ -49,7 +50,10 @@ export default function App() {
   }
 
   return (
+    
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="bg-pink-500 text-white p-4 font-bold">Tailwind Test</div>
+
       <form noValidate onSubmit={formSubmitHandler} className="max-w-md w-full p-6 bg-white rounded-2xl shadow-lg">
         <CardHeader>
           <CardTitle className="mb-2 text-3xl font-medium text-center text-black">
