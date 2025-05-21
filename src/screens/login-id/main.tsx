@@ -6,7 +6,6 @@ import App from "./App";
 const rootElement = document.createElement("div");
 rootElement.id = "root";
 document.body.appendChild(rootElement);
-document.body.style.overflow = "hidden";
 
 createRoot(rootElement).render(
   <StrictMode>
