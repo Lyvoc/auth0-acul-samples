@@ -25,10 +25,11 @@ export default function App() {
     passwordPlaceholder:
       screenProvider.screen.texts?.passwordPlaceholder ?? "Password",
     buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
-    forgottenPasswordText:
-      screenProvider.screen.texts?.forgottenPasswordText ??
+    forgotPasswordText:
+      screenProvider.screen.texts?.forgotPasswordText ??
       "Forgot your Password?",
     editEmailText: screenProvider.screen.texts?.editEmailText ?? "Edit Email",
+    emailPlaceholder: screenProvider.screen.texts?.emailPlaceholder ?? "Email",
   };
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
@@ -105,12 +106,11 @@ export default function App() {
           </Button>
 
           <Text className="form-text mt-6">
-            Need Help?
             <Link
               className="form-link"
               href={screenProvider.screen.resetPasswordLink ?? "#"}
             >
-              {texts.forgottenPasswordText}
+              {texts.forgotPasswordText}
             </Link>
           </Text>
         </CardContent>
