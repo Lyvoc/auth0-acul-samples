@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      VITE_PUBLIC_CDN: https://${{ secrets.CLOUDFRONT_DOMAIN }}
+
     steps:
       - uses: actions/checkout@v3
 

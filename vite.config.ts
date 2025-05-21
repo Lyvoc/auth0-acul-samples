@@ -11,6 +11,7 @@ const input = Object.fromEntries(
 );
 
 export default defineConfig({
+  base: process.env.VITE_PUBLIC_CDN + "/",
   plugins: [react()],
   build: {
     rollupOptions: {
