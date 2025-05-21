@@ -1,8 +1,10 @@
 @layer components {
   .form-input {
-    @apply w-full px-4 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200;
+    @apply w-full px-4 py-2 text-base border border-gray-300 rounded-lg 
+         focus:outline-none focus:ring-2 focus:ring-blue-500 
+         focus:border-transparent transition duration-200 
+         text-gray-900 bg-white placeholder-gray-400;
   }
-
   .form-label {
     @apply block text-sm font-medium text-gray-700;
   }

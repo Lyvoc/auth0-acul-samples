@@ -49,15 +49,12 @@ export default function App() {
     identifierDefaultValue = screenProvider.untrustedData.submittedFormData.username;
   }
 
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-950 px-4">
-      <form
-        noValidate
-        onSubmit={formSubmitHandler}
-        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
-      >
+return (
+  <div className="min-h-screen w-full bg-gray-900 flex items-center justify-center px-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+      <form noValidate onSubmit={formSubmitHandler} className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <CardHeader>
-          <CardTitle className="mb-2 text-3xl font-bold text-center text-gray-900">
+          <CardTitle className="mb-4 text-3xl font-bold text-center text-gray-900">
             {texts.title}
           </CardTitle>
           <CardDescription className="mb-6 text-center text-gray-600">
@@ -66,7 +63,7 @@ export default function App() {
         </CardHeader>
 
         <CardContent>
-          <div className="mb-4">
+          <div className="mb-6">
             <Label htmlFor="identifier" className="form-label">
               {texts.emailPlaceholder}
             </Label>
@@ -81,7 +78,7 @@ export default function App() {
             />
           </div>
 
-          <Button type="submit" className="form-button mt-4">
+          <Button type="submit" className="form-button">
             {texts.buttonText}
           </Button>
 
@@ -97,5 +94,6 @@ export default function App() {
         </CardContent>
       </form>
     </div>
-  );
+  </div>
+);
 }
