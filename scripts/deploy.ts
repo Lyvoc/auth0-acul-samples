@@ -39,7 +39,7 @@ async function deploy() {
       })
     );
 
-    console.log(`✅ Uploaded ${relativePath}`);
+    console.log(`Uploaded ${relativePath}`);
   }
 
   // Invalidate all CloudFront paths
@@ -53,7 +53,7 @@ async function deploy() {
     })
   );
 
-  console.log("🚀 CloudFront cache invalidated");
+  console.log("CloudFront cache invalidated");
 }
 
 deploy().catch(console.error);
