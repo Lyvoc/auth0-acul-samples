@@ -19,7 +19,15 @@ export default defineConfig({
         dir: "dist",
         entryFileNames: "[name]/index.js",
         assetFileNames: "[name]/index.css",
-        chunkFileNames: "[name]/[name].js",
+        chunkFileNames: (chunkInfo) => {
+          if (
+            chunkInfo.name === "vendor-react" ||
+            chunkInfo.name === "vendor-auth0"
+          ) {
+            return "[name].js"; // emit to root of dist/
+          }
+          return "[name]/[name].js"; // emit entry chunks to screen folder
+        },
         manualChunks(id) {
           if (id.includes("node_modules/react")) return "vendor-react";
           if (id.includes("node_modules/@auth0")) return "vendor-auth0";

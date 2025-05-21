@@ -47,18 +47,15 @@ async function deploy() {
         })
       );
 
-      console.log(`✅ Uploaded ${screen}/${file}`);
+      console.log(`Uploaded ${screen}/${file}`);
     }
   }
 
   // Upload vendor chunks from top-level folders into each screen folder
-  const vendorSources = [
-    { folder: "vendor-auth0", file: "vendor-auth0.js" },
-    { folder: "vendor-react", file: "vendor-react.js" },
-  ];
+  const vendorFiles = ["vendor-react.js", "vendor-auth0.js"];
 
-  for (const { folder, file } of vendorSources) {
-    const sourcePath = resolve(distRoot, folder, file);
+  for (const file of vendorFiles) {
+    const sourcePath = resolve(distRoot, file);
     const content = readFileSync(sourcePath);
 
     for (const screen of screens) {
@@ -71,7 +68,7 @@ async function deploy() {
           CacheControl: "max-age=31536000",
         })
       );
-      console.log(`✅ Uploaded ${file} to ${screen}/`);
+      console.log(`Uploaded ${file} to ${screen}/`);
     }
   }
 
@@ -86,7 +83,7 @@ async function deploy() {
     })
   );
 
-  console.log("🚀 CloudFront cache invalidated");
+  console.log("CloudFront cache invalidated");
 }
 
 deploy().catch(console.error);
