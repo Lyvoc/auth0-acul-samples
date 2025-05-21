@@ -63,7 +63,7 @@ export default function App() {
       <form
         noValidate
         onSubmit={formSubmitHandler}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8"
+        className="bg-white text-black rounded-2xl shadow-2xl p-8 w-full max-w-md"
       >
         <CardHeader>
           <CardTitle className="mb-4 text-3xl font-bold text-center text-black">
