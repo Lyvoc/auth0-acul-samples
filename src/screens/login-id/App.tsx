@@ -1,14 +1,12 @@
-import { ChangeEvent } from "react";
+import { useRef, ChangeEvent } from "react";
 import { LoginId as ScreenProvider } from "@auth0/auth0-acul-js";
-
 
 // UI Components
 import Button from "../../common/Button";
-
 import { Label } from "../../common/Label";
 import { Input } from "../../common/Input";
 import { Text } from "../../common/Text";
-import { Link } from "../../common/Link"
+import { Link } from "../../common/Link";
 import {
   CardHeader,
   CardTitle,
@@ -17,19 +15,32 @@ import {
 } from "../../common/Card";
 
 export default function App() {
-  const screenProvider = new ScreenProvider();
+  const screenProviderRef = useRef<ScreenProvider>(new ScreenProvider());
+  const screenProvider = screenProviderRef.current;
 
-  const formSubmitHandler = (event: ChangeEvent<HTMLFormElement>) => {
+  const texts = {
+    title: screenProvider.screen.texts?.title ?? "Welcome",
+    description: screenProvider.screen.texts?.description ?? "Login to continue",
+    emailPlaceholder: screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
+    buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
+    footerText: screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
+    footerLinkText: screenProvider.screen.texts?.footerLinkText ?? "Create your account",
+    forgottenPasswordText: screenProvider.screen.texts?.forgottenPasswordText ?? "Forgot your Password?",
+  };
+
+  const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     const identifierInput = event.target.querySelector(
       "input#identifier"
     ) as HTMLInputElement;
 
-    screenProvider.login({ username: identifierInput?.value });
+    try {
+      await screenProvider.login({ username: identifierInput?.value });
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
-  // Extract the default value for the identifier input to avoid nested ternary
   let identifierDefaultValue = "";
   if (typeof screenProvider.screen.data?.username === "string") {
     identifierDefaultValue = screenProvider.screen.data.username;
@@ -38,50 +49,47 @@ export default function App() {
   }
 
   return (
-    <form noValidate onSubmit={formSubmitHandler}>
-      <CardHeader>
-        <CardTitle className="mb-2 text-3xl font-medium text-center">
-          {screenProvider.screen.texts?.title ?? "Welcome"}
-        </CardTitle>
-        <CardDescription className="mb-8 text-center">
-          {screenProvider.screen.texts?.description ?? "Login to continue"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-2 space-y-2">
-          <Label htmlFor="identifier">
-            {screenProvider.screen.texts?.emailPlaceholder ??
-              "Enter your email"}
-          </Label>
-          <Input
-            type="text"
-            id="identifier"
-            name="identifier"
-            defaultValue={identifierDefaultValue}
-          />
-        </div>
-        <Button type="submit" className="w-full">
-          {screenProvider.screen.texts?.buttonText ?? "Continue"}
-        </Button>
-        <Text className="mb-2">
-          {screenProvider.screen.texts?.footerText ??
-            "Don't have an account yet?"}
-          <Link className="ml-1" href={screenProvider.screen.signupLink ?? "#"}>
-            {screenProvider.screen.texts?.footerLinkText ??
-              "Create your account"}
-          </Link>
-        </Text>
-        <Text>
-          Need Help?
-          <Link
-            className="ml-1"
-            href={screenProvider.screen.resetPasswordLink ?? "#"}
-          >
-            {screenProvider.screen.texts?.forgottenPasswordText ??
-              "Forgot your Password?"}
-          </Link>
-        </Text>
-      </CardContent>
-    </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <form noValidate onSubmit={formSubmitHandler} className="max-w-md w-full p-6 bg-white rounded-2xl shadow-lg">
+        <CardHeader>
+          <CardTitle className="mb-2 text-3xl font-medium text-center text-black">
+            {texts.title}
+          </CardTitle>
+          <CardDescription className="mb-8 text-center text-gray-600">
+            {texts.description}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 space-y-2">
+            <Label htmlFor="identifier" className="text-black">
+              {texts.emailPlaceholder}
+            </Label>
+            <Input
+              type="text"
+              id="identifier"
+              name="identifier"
+              defaultValue={identifierDefaultValue}
+              aria-label={texts.emailPlaceholder}
+              className="w-full"
+            />
+          </div>
+          <Button type="submit" className="w-full">
+            {texts.buttonText}
+          </Button>
+          <Text className="mt-4 text-center text-sm text-gray-700">
+            {texts.footerText}
+            <Link className="ml-1 text-blue-600 hover:underline" href={screenProvider.screen.signupLink ?? "#"}>
+              {texts.footerLinkText}
+            </Link>
+          </Text>
+          <Text className="mt-2 text-center text-sm text-gray-700">
+            Need Help?
+            <Link className="ml-1 text-blue-600 hover:underline" href={screenProvider.screen.resetPasswordLink ?? "#"}>
+              {texts.forgottenPasswordText}
+            </Link>
+          </Text>
+        </CardContent>
+      </form>
+    </div>
   );
 }

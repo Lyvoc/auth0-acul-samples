@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #2563eb; /* Tailwind blue-600 */
+    --color-secondary: #6b7280; /* Tailwind gray-500 */
+    --color-background: #ffffff;
+    --color-text: #111827;
+    --color-error: #dc2626;
+    --radius: 0.75rem;
+  }
+
+  html,
+  body {
+    @apply min-h-screen bg-gray-100 text-gray-900 font-sans antialiased;
+  }
+
+  body {
+    @apply flex items-center justify-center p-4;
+  }
+}
