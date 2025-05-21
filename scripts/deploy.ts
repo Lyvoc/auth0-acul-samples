@@ -4,75 +4,45 @@ import {
   CloudFrontClient,
   CreateInvalidationCommand,
 } from "@aws-sdk/client-cloudfront";
-import { readFileSync, readdirSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, resolve, join } from "path";
+import fg from "fast-glob";
+import { readFileSync } from "fs";
+import { join, resolve } from "path";
 
 dotenv.config();
-
-// Screen definitions (keep in sync with vite.config.ts)
-const screens = ["login-id", "login-password"];
 
 async function deploy() {
   const region = "eu-north-1";
   const s3 = new S3Client({ region });
   const cloudfront = new CloudFrontClient({ region });
+
   const bucket = process.env.S3_BUCKET;
   const distributionId = process.env.CLOUDFRONT_ID;
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-  const distRoot = resolve(__dirname, "../dist");
+  const distRoot = resolve("dist");
 
-  // Upload all per-screen assets (index.js, index.css, etc.)
-  for (const screen of screens) {
-    const screenPath = resolve(distRoot, screen);
+  // Match all .js and .css files in dist/** (preserves nested folder structure)
+  const files = await fg(["**/*.js", "**/*.css"], { cwd: distRoot });
 
-    const files = readdirSync(screenPath).filter(
-      (f) => f.endsWith(".js") || f.endsWith(".css")
+  for (const relativePath of files) {
+    const filePath = join(distRoot, relativePath);
+    const content = readFileSync(filePath);
+    const contentType = relativePath.endsWith(".js")
+      ? "application/javascript"
+      : "text/css";
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: relativePath,
+        Body: content,
+        ContentType: contentType,
+        CacheControl: "max-age=31536000",
+      })
     );
 
-    for (const file of files) {
-      const content = readFileSync(join(screenPath, file));
-      const contentType = file.endsWith(".js")
-        ? "application/javascript"
-        : "text/css";
-
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: bucket,
-          Key: `${screen}/${file}`,
-          Body: content,
-          ContentType: contentType,
-          CacheControl: "max-age=31536000",
-        })
-      );
-
-      console.log(`Uploaded ${screen}/${file}`);
-    }
+    console.log(`✅ Uploaded ${relativePath}`);
   }
 
-  // Upload vendor chunks from top-level folders into each screen folder
-  const vendorFiles = ["vendor-react.js", "vendor-auth0.js"];
-
-  for (const file of vendorFiles) {
-    const sourcePath = resolve(distRoot, file);
-    const content = readFileSync(sourcePath);
-
-    for (const screen of screens) {
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: bucket,
-          Key: `${screen}/${file}`,
-          Body: content,
-          ContentType: "application/javascript",
-          CacheControl: "max-age=31536000",
-        })
-      );
-      console.log(`Uploaded ${file} to ${screen}/`);
-    }
-  }
-
-  // Invalidate CloudFront cache
+  // Invalidate all CloudFront paths
   await cloudfront.send(
     new CreateInvalidationCommand({
       DistributionId: distributionId,
@@ -83,7 +53,7 @@ async function deploy() {
     })
   );
 
-  console.log("CloudFront cache invalidated");
+  console.log("🚀 CloudFront cache invalidated");
 }
 
 deploy().catch(console.error);
