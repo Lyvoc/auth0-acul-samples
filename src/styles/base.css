@@ -3,22 +3,18 @@
 @tailwind utilities;
 
 @layer base {
+  html,
+  body {
+    @apply min-h-screen w-full bg-gray-950 text-gray-900 font-sans antialiased m-0 p-0;
+  }
+
   *,
   *::before,
   *::after {
     box-sizing: border-box;
   }
 
-  html,
-  body {
-    @apply min-h-screen w-full bg-gray-950 text-gray-900 font-sans antialiased;
-  }
-
-  body {
-    @apply p-0 m-0;
-  }
-
-  .test-base-file {
-    @apply bg-yellow-200 text-black p-4;
+  #root {
+    @apply min-h-screen flex items-center justify-center;
   }
 }
