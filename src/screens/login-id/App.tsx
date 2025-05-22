@@ -59,32 +59,21 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <form
-        noValidate
-        onSubmit={formSubmitHandler}
-        className="bg-white text-black rounded-2xl shadow-2xl p-8 w-full max-w-md"
-      >
+      <form noValidate onSubmit={formSubmitHandler} className="card">
         <CardHeader>
-          <CardTitle className="mb-4 text-3xl font-bold text-center text-black">
-            {texts.title}
-          </CardTitle>
-          <CardDescription className="mb-6 text-center text-gray-600">
-            {texts.description}
-          </CardDescription>
+          <CardTitle>{texts.title}</CardTitle>
+          <CardDescription>{texts.description}</CardDescription>
         </CardHeader>
 
         <CardContent>
-          <div className="mb-6">
-            <Label htmlFor="identifier" className="form-label">
-              {texts.emailPlaceholder}
-            </Label>
+          <div className="form-group">
+            <Label htmlFor="identifier">{texts.emailPlaceholder}</Label>
             <Input
-              type="text"
               id="identifier"
               name="identifier"
               defaultValue={identifierDefaultValue}
               placeholder="john@example.com"
-              aria-label={texts.emailPlaceholder}
+              autoFocus
               className="form-input"
             />
           </div>
@@ -93,11 +82,19 @@ export default function App() {
             {texts.buttonText}
           </Button>
 
+          {texts.forgottenPasswordText && (
+            <Text className="form-text mt-4">
+              <Link href="#" className="form-link">
+                {texts.forgottenPasswordText}
+              </Link>
+            </Text>
+          )}
+
           <Text className="form-text mt-6">
             {texts.footerText}
             <Link
-              className="form-link"
               href={screenProvider.screen.signupLink ?? "#"}
+              className="form-link ml-1"
             >
               {texts.footerLinkText}
             </Link>
