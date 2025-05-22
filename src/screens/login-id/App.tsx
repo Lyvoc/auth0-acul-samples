@@ -59,12 +59,6 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <button className="form-button mt-4">Native Test Button</button>
-      <button className="test-button">Debug Button</button>
-      <div className="bg-red-500 text-white p-4 rounded-md">
-        🔥 Tailwind test
-      </div>
-
       <form
         noValidate
         onSubmit={formSubmitHandler}
