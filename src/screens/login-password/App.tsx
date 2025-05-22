@@ -1,6 +1,7 @@
 import { ChangeEvent } from "react";
 import { LoginPassword as ScreenProvider } from "@auth0/auth0-acul-js";
 
+// UI Components
 import Button from "../../components/Button";
 import { Label } from "../../components/Label";
 import { Input } from "../../components/Input";
@@ -29,7 +30,8 @@ export default function App() {
       screenProvider.screen.texts?.forgotPasswordText ??
       "Forgot your Password?",
     editEmailText: screenProvider.screen.texts?.editEmailText ?? "Edit Email",
-    emailPlaceholder: screenProvider.screen.texts?.emailPlaceholder ?? "Email",
+    emailPlaceholder:
+      screenProvider.screen.texts?.emailPlaceholder ?? "Email",
   };
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
@@ -55,23 +57,19 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <form
-        noValidate
-        onSubmit={formSubmitHandler}
-        className="bg-white text-black rounded-2xl shadow-2xl p-8 w-full max-w-md"
-      >
-        <div className="test-css-inclusion">Force CSS inclusion</div>
+      <form noValidate onSubmit={formSubmitHandler} className="card">
+        <div className="test-css-inclusion" style={{ display: "none" }}>
+          CSS Keepalive
+        </div>
 
-        <CardHeader>
-          <CardTitle className="mb-4 text-3xl font-bold text-center text-black">
-            {texts.title}
-          </CardTitle>
-          <CardDescription className="mb-6 text-center text-gray-600">
+        <CardHeader className="card-header">
+          <CardTitle className="card-title">{texts.title}</CardTitle>
+          <CardDescription className="card-description">
             {texts.description}
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="card-content">
           <Text className="form-text mb-4">
             <span className="inline-block">Log in as </span>
             <span className="inline-block ml-1 font-bold">{identifier}</span>

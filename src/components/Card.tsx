@@ -1,23 +1,29 @@
-import React from "react";
+import { HTMLAttributes } from "react";
 
-export const CardHeader: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => <div className="border-b pb-4 mb-4">{children}</div>;
+type DivProps = HTMLAttributes<HTMLDivElement>;
+type HeadingProps = HTMLAttributes<HTMLHeadingElement>;
+type ParagraphProps = HTMLAttributes<HTMLParagraphElement>;
 
-export const CardTitle: React.FC<{
-  children: React.ReactNode;
-  className?: string;
-}> = ({ children, className }) => (
-  <h1 className={`text-xl font-bold ${className}`}>{children}</h1>
+export const CardHeader = ({ children, className = "", ...rest }: DivProps) => (
+  <div className={`border-b pb-4 mb-4 ${className}`} {...rest}>
+    {children}
+  </div>
 );
 
-export const CardDescription: React.FC<{
-  children: React.ReactNode;
-  className?: string;
-}> = ({ children, className }) => (
-  <p className={`text-gray-500 text-sm ${className}`}>{children}</p>
+export const CardTitle = ({ children, className = "", ...rest }: HeadingProps) => (
+  <h1 className={`text-xl font-bold ${className}`} {...rest}>
+    {children}
+  </h1>
 );
 
-export const CardContent: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => <div className="space-y-4">{children}</div>;
+export const CardDescription = ({ children, className = "", ...rest }: ParagraphProps) => (
+  <p className={`text-gray-500 text-sm ${className}`} {...rest}>
+    {children}
+  </p>
+);
+
+export const CardContent = ({ children, className = "", ...rest }: DivProps) => (
+  <div className={className} {...rest}>
+    {children}
+  </div>
+);

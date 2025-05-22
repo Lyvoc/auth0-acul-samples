@@ -57,12 +57,12 @@ export default function App() {
   return (
     <div className="app-container">
       <form noValidate onSubmit={formSubmitHandler} className="card">
-        <CardHeader>
+        <CardHeader className="card-header">
           <CardTitle>{texts.title}</CardTitle>
           <CardDescription>{texts.description}</CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="card-content">
           <div className="form-group">
             <Label htmlFor="identifier" className="form-label">
               {texts.emailPlaceholder}
