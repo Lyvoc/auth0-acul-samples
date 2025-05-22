@@ -90,7 +90,7 @@ export default function App() {
             value={identifier}
           />
 
-          <div className="mb-6">
+          <div className="form-group">
             <Label htmlFor="password" className="form-label">
               {texts.passwordPlaceholder}
             </Label>

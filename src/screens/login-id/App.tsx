@@ -29,9 +29,6 @@ export default function App() {
       screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
     footerLinkText:
       screenProvider.screen.texts?.footerLinkText ?? "Create your account",
-    forgottenPasswordText:
-      screenProvider.screen.texts?.forgottenPasswordText ??
-      "Forgot your Password?",
   };
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
@@ -67,7 +64,9 @@ export default function App() {
 
         <CardContent>
           <div className="form-group">
-            <Label htmlFor="identifier">{texts.emailPlaceholder}</Label>
+            <Label htmlFor="identifier" className="form-label">
+              {texts.emailPlaceholder}
+            </Label>
             <Input
               id="identifier"
               name="identifier"
@@ -81,14 +80,6 @@ export default function App() {
           <Button type="submit" className="form-button">
             {texts.buttonText}
           </Button>
-
-          {texts.forgottenPasswordText && (
-            <Text className="form-text mt-4">
-              <Link href="#" className="form-link">
-                {texts.forgottenPasswordText}
-              </Link>
-            </Text>
-          )}
 
           <Text className="form-text mt-6">
             {texts.footerText}
