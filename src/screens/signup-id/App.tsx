@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { LoginId as ScreenProvider } from "@auth0/auth0-acul-js";
+import { SignupId as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
 import Button from "../../components/Button";
@@ -38,7 +38,7 @@ export default function App() {
     ) as HTMLInputElement;
 
     try {
-      await screenProvider.login({ username: identifierInput?.value });
+      await screenProvider.signup({ username: identifierInput?.value });
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -83,12 +83,12 @@ export default function App() {
 
           <Text className="form-text mt-6">
             {texts.footerText}
-            <Link
+            {/* <Link
               href={screenProvider.screen.signupLink ?? "#"}
               className="form-link ml-1"
             >
               {texts.footerLinkText}
-            </Link>
+            </Link> */}
           </Text>
         </CardContent>
       </form>
