@@ -18,27 +18,28 @@ export default function App() {
   const screenProvider = new ScreenProvider();
   console.log("screenProvider: ", screenProvider);
 
-  const texts = {
-    title: screenProvider.screen.texts?.title ?? "Welcome",
-    description:
-      screenProvider.screen.texts?.description ?? "Login to continue",
-    emailPlaceholder:
-      screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
-    buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
-    footerText:
-      screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
-    footerLinkText:
-      screenProvider.screen.texts?.footerLinkText ?? "Create your account",
-  };
+  // const texts = {
+  //   title: screenProvider.screen.texts?.title ?? "Welcome",
+  //   description:
+  //     screenProvider.screen.texts?.description ?? "Login to continue",
+  //   emailPlaceholder:
+  //     screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
+  //   buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
+  //   footerText:
+  //     screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
+  //   footerLinkText:
+  //     screenProvider.screen.texts?.footerLinkText ?? "Create your account",
+  // };
+  const texts = screenProvider.screen.texts
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // const identifierInput = event.target.querySelector(
-    //   "input#identifier"
-    // ) as HTMLInputElement;
+    const identifierInput = event.target.querySelector(
+      "input#identifier"
+    ) as HTMLInputElement;
 
     try {
-      await screenProvider.continueEnrollment({ phone: "0629395357",type : "sms" });
+      await screenProvider.continueEnrollment({ phone: identifierInput?.value,type : "sms" });
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -59,14 +60,14 @@ export default function App() {
     <div className="app-container">
       <form noValidate onSubmit={formSubmitHandler} className="card">
         <CardHeader className="card-header">
-          <CardTitle>{texts.title}</CardTitle>
-          <CardDescription>{texts.description}</CardDescription>
+          <CardTitle>{texts?.title}</CardTitle>
+          <CardDescription>{texts?.description}</CardDescription>
         </CardHeader>
 
         <CardContent className="card-content">
           <div className="form-group">
             <Label htmlFor="identifier" className="form-label">
-              {texts.emailPlaceholder}
+              {texts?.placeholder}
             </Label>
             <Input
               id="identifier"
@@ -79,16 +80,16 @@ export default function App() {
           </div>
 
           <Button type="submit" className="form-button">
-            {texts.buttonText}
+            {texts?.buttonText}
           </Button>
 
           <Text className="form-text mt-6">
-            {texts.footerText}
+            {texts?.footerText}
             <Link
               // href={screenProvider.screen.signupLink ?? "#"}
               className="form-link ml-1"
             >
-              {texts.footerLinkText}
+              {texts?.footerLinkText}
             </Link>
           </Text>
         </CardContent>
