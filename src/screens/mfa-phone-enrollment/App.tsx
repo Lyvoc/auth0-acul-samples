@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, SetStateAction } from "react";
 import { MfaPhoneEnrollment as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
@@ -13,10 +13,16 @@ import {
   CardDescription,
   CardContent,
 } from "../../components/Card";
+import { useState } from "react";
 
 export default function App() {
   const screenProvider = new ScreenProvider();
   console.log("screenProvider: ", screenProvider);
+  const [type, setType] = useState("");
+
+  const handleSelect = (selectedType: string ) => {
+    setType(selectedType);
+  };
 
   // const texts = {
   //   title: screenProvider.screen.texts?.title ?? "Welcome",
@@ -39,7 +45,12 @@ export default function App() {
     ) as HTMLInputElement;
 
     try {
-      await screenProvider.continueEnrollment({ phone: identifierInput?.value,type : "sms" });
+      if(type === "sms"){
+        await screenProvider.continueEnrollment({ phone: identifierInput?.value,type : "sms" });
+      }else{
+        await screenProvider.continueEnrollment({ phone: identifierInput?.value,type : "voice" });
+      }
+      
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -82,6 +93,22 @@ export default function App() {
           <Button type="submit" className="form-button">
             {texts?.continueButtonText}
           </Button>
+          <button
+            onClick={() => handleSelect("sms")}
+            className={`px-4 py-2 rounded-lg border 
+              ${type === "sms" ? "bg-blue-600 text-white" : "bg-white text-gray-800 border-gray-300"}
+              transition duration-200 shadow-md`}
+          >
+            SMS
+          </button>
+          <button
+            onClick={() => handleSelect("voice")}
+            className={`px-4 py-2 rounded-lg border 
+              ${type === "voice" ? "bg-blue-600 text-white" : "bg-white text-gray-800 border-gray-300"}
+              transition duration-200 shadow-md`}
+          >
+            Voice Call
+          </button>
 
           <Text className="form-text mt-6">
             {texts?.footerText}
