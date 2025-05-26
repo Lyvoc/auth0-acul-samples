@@ -83,12 +83,12 @@ export default function App() {
 
           <Text className="form-text mt-6">
             {texts.footerText}
-            {/* <Link
-              href={screenProvider.screen.signupLink ?? "#"}
+            <Link
+              // href={screenProvider.screen.signupLink ?? "#"}
               className="form-link ml-1"
             >
               {texts.footerLinkText}
-            </Link> */}
+            </Link>
           </Text>
         </CardContent>
       </form>
