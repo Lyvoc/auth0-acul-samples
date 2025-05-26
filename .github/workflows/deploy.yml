@@ -54,7 +54,10 @@ jobs:
                       --client-id ${{ secrets.AUTH0_CLIENT_ID }} \
                       --client-secret ${{ secrets.AUTH0_CLIENT_SECRET }}
 
-          for screen in login-id login-password; do
+          # Auth0 Screens to deploy with ACUL
+          SCREEN_PROMPTS=("login-id" "login-password" "signup-id")
+
+          for screen in "${SCREEN_PROMPTS[@]}"; do
             # Replace placeholders in template
             sed -e "s|{{CLOUDFRONT_DOMAIN}}|${{ secrets.CLOUDFRONT_DOMAIN }}|g" \
                 -e "s|{{SCREEN}}|${screen}|g" \
