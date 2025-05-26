@@ -80,7 +80,7 @@ export default function App() {
           </div>
 
           <Button type="submit" className="form-button">
-            {texts?.buttonText}
+            {texts?.continueButtonText}
           </Button>
 
           <Text className="form-text mt-6">
