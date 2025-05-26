@@ -56,7 +56,7 @@ jobs:
                       --client-secret ${{ secrets.AUTH0_CLIENT_SECRET }}
 
           # Auth0 Screens to deploy with ACUL
-          PROMPT_SCREEN_PAIRS=("login-id:login-id" "login-password:login-password" "signup-id:signup-id" "mfa-phone:mfa-phone-enrollment" "mfa-phone:mfa-sms-enrollment-verify")
+          PROMPT_SCREEN_PAIRS=("login-id:login-id" "login-password:login-password" "signup-id:signup-id" "mfa-phone:mfa-phone-enrollment" "mfa-sms:mfa-sms-enrollment-verify")
 
           for pair in "${PROMPT_SCREEN_PAIRS[@]}"; do
             IFS=":" read -r prompt screen <<< "$pair"
