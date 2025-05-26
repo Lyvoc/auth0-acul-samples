@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { MfaPhoneEnrollment, MfaPhoneEnrollment as ScreenProvider } from "@auth0/auth0-acul-js";
+import { MfaPhoneEnrollment as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
 import Button from "../../components/Button";
@@ -33,9 +33,9 @@ export default function App() {
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const identifierInput = event.target.querySelector(
-      "input#identifier"
-    ) as HTMLInputElement;
+    // const identifierInput = event.target.querySelector(
+    //   "input#identifier"
+    // ) as HTMLInputElement;
 
     try {
       await screenProvider.continueEnrollment({ phone: "0629395357",type : "sms" });
