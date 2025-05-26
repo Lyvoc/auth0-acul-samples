@@ -13,16 +13,16 @@ import {
   CardDescription,
   CardContent,
 } from "../../components/Card";
-import { useState } from "react";
+// import { useState } from "react";
 
 export default function App() {
   const screenProvider = new ScreenProvider();
   console.log("screenProvider: ", screenProvider);
-  const [type, setType] = useState("");
+  // const [type, setType] = useState("");
 
-  const handleSelect = (selectedType: string ) => {
-    setType(selectedType);
-  };
+  // const handleSelect = (selectedType: string ) => {
+  //   setType(selectedType);
+  // };
 
   // const texts = {
   //   title: screenProvider.screen.texts?.title ?? "Welcome",
