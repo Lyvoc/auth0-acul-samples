@@ -56,7 +56,7 @@ jobs:
                       --client-secret ${{ secrets.AUTH0_CLIENT_SECRET }}
 
           # Auth0 Screens to deploy with ACUL
-          SCREEN_PROMPTS=("login-id" "login-password" "signup-id" "mfa-phone-enrollment")
+          SCREEN_PROMPTS=("login-id" "login-password" "signup-id" "mfa-phone")
 
           for screen in "${SCREEN_PROMPTS[@]}"; do
             # Replace placeholders in template

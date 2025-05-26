@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
 // Screen definitions
-const screens = ["login-id", "login-password","signup-id","mfa-phone-enrollment"];
+const screens = ["login-id", "login-password","signup-id","mfa-phone"];
 
 // Generate input object for all screens
 const input = Object.fromEntries(
