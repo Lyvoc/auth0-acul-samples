@@ -56,18 +56,20 @@ jobs:
                       --client-secret ${{ secrets.AUTH0_CLIENT_SECRET }}
 
           # Auth0 Screens to deploy with ACUL
-          SCREEN_PROMPTS=("login-id" "login-password" "signup-id" "mfa-phone-enrollment")
+          PROMPT_SCREEN_PAIRS=("login-id:login-id" "login-password:login-password" "signup-id:signup-id" "mfa-phone:mfa-phone-enrollment")
 
-          for screen in "${SCREEN_PROMPTS[@]}"; do
+          for pair in "${PROMPT_SCREEN_PAIRS[@]}"; do
+            IFS=":" read -r prompt screen <<< "$pair"
+
             # Replace placeholders in template
             sed -e "s|{{CLOUDFRONT_DOMAIN}}|${{ secrets.CLOUDFRONT_DOMAIN }}|g" \
                 -e "s|{{SCREEN}}|${screen}|g" \
                 scripts/settings.template.json > settings.json
 
-            # Deploy screen
+            # Deploy screen with specific prompt and screen
             auth0 ul customize \
               --rendering-mode advanced \
-              --prompt ${screen} \
-              --screen ${screen} \
+              --prompt "$prompt" \
+              --screen "$screen" \
               --settings-file settings.json
           done
