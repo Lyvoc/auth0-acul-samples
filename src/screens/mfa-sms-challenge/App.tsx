@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { MfaSmsEnrollment as ScreenProvider } from "@auth0/auth0-acul-js";
+import { MfaSmsChallenge as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
 import Button from "../../components/Button";
@@ -45,11 +45,9 @@ export default function App() {
     ) as HTMLInputElement;
 
     try {
-      if(type === "sms"){
-        await screenProvider.continueEnrollment({ phone: identifierInput?.value,type : "sms" });
-      }else{
-        await screenProvider.continueEnrollment({ phone: identifierInput?.value,type : "voice" });
-      }
+      
+        await screenProvider.continueMfaSmsChallenge({ code: identifierInput?.value,type : "sms" });
+      
       
     } catch (error) {
       console.error("Login failed:", error);
@@ -93,24 +91,6 @@ export default function App() {
           <Button type="submit" className="form-button">
             {texts?.continueButtonText}
           </Button>
-          <button
-            type = "button"
-            onClick={() => handleSelect("sms")}
-            className={`px-4 py-2 rounded-lg border 
-              ${type === "sms" ? "bg-blue-600 text-white" : "bg-white text-gray-800 border-gray-300"}
-              transition duration-200 shadow-md`}
-          >
-            SMS
-          </button>
-          <button
-            type = "button"
-            onClick={() => handleSelect("voice")}
-            className={`px-4 py-2 rounded-lg border 
-              ${type === "voice" ? "bg-blue-600 text-white" : "bg-white text-gray-800 border-gray-300"}
-              transition duration-200 shadow-md`}
-          >
-            Voice Call
-          </button>
 
           <Text className="form-text mt-6">
             {texts?.footerText}
