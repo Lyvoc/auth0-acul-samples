@@ -94,6 +94,7 @@ export default function App() {
             {texts?.continueButtonText}
           </Button>
           <button
+            type = "button"
             onClick={() => handleSelect("sms")}
             className={`px-4 py-2 rounded-lg border 
               ${type === "sms" ? "bg-blue-600 text-white" : "bg-white text-gray-800 border-gray-300"}
@@ -102,6 +103,7 @@ export default function App() {
             SMS
           </button>
           <button
+            type = "button"
             onClick={() => handleSelect("voice")}
             className={`px-4 py-2 rounded-lg border 
               ${type === "voice" ? "bg-blue-600 text-white" : "bg-white text-gray-800 border-gray-300"}
