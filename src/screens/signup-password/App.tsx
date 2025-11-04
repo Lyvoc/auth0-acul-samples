@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo } from "react";
+import { ChangeEvent, useMemo, useState } from "react";
 import { SignupPassword as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components (shadcn)
@@ -16,6 +16,8 @@ import {
 
 export default function SignupPassword() {
   const screenManager = useMemo(() => new ScreenProvider(), []);
+  const [error, setError] = useState<string>("");
+  const serverErrors = screenManager.transaction?.errors ?? [];
 
   const texts = {
     title: screenManager.screen.texts?.title ?? "Set your password",
@@ -35,6 +37,7 @@ export default function SignupPassword() {
 
   const onSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
 
     const passwordInput = e.target.querySelector(
       "input#password"
@@ -45,10 +48,7 @@ export default function SignupPassword() {
 
     // Basic client check; server-side policy enforcement still applies
     if (confirmInput?.value && confirmInput.value !== passwordInput?.value) {
-      screenManager.setError?.({
-        code: "password_mismatch",
-        message: "Passwords do not match.",
-      });
+      setError("Passwords do not match.");
       return;
     }
 
@@ -106,6 +106,15 @@ export default function SignupPassword() {
           <Button type="submit" className="form-button mt-4">
             {texts.buttonText}
           </Button>
+
+          {(error || serverErrors.length > 0) && (
+            <div className="mt-3 text-sm text-red-600">
+              {error && <p>{error}</p>}
+              {serverErrors.map((er: { code: string; message: string }) => (
+                <p key={er.code}>{er.message}</p>
+              ))}
+            </div>
+          )}
 
           <Text className="form-text mt-6">
             {texts.footerText}
