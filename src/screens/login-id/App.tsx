@@ -128,11 +128,14 @@ export default function App() {
               inputMode="email"
             />
             {showPasskeyHint && (
-              <Text className="form-text mt-2" aria-live="polite">
-                Passkey available on this device ✨
-                {/* Conditional UI will show the native account picker;
-                    no extra click needed. This is just a hint. */}
-              </Text>
+              <button
+                type="button"
+                className="form-text mt-2 underline cursor-pointer text-left"
+                onClick={() => screenProvider.passkeyLogin()}
+                aria-live="polite"
+              >
+                Passkey available on this device ✨ — Click to use
+              </button>
             )}
           </div>
 
