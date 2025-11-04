@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import PasskeyEnrollmentLocal from "@auth0/auth0-acul-js/passkey-enrollment-local";
+import PasskeyEnrollment from "@auth0/auth0-acul-js/passkey-enrollment";
 
-const PasskeyEnrollmentLocalScreen: React.FC = () => {
+const PasskeyEnrollmentScreen: React.FC = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [aborted, setAborted] = useState(false);
   const [doNotShowAgain, setDoNotShowAgain] = useState(false);
 
-  const passkeyEnrollment = new PasskeyEnrollmentLocal();
+  const passkeyEnrollment = new PasskeyEnrollment();
 
   const handleContinue = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,7 +39,7 @@ const PasskeyEnrollmentLocalScreen: React.FC = () => {
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Passkey Enrollment (Local)
+          Passkey Enrollment
         </h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -95,4 +95,4 @@ const PasskeyEnrollmentLocalScreen: React.FC = () => {
   );
 };
 
-export default PasskeyEnrollmentLocalScreen;
+export default PasskeyEnrollmentScreen;
