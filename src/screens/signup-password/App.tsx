@@ -110,7 +110,7 @@ export default function SignupPassword() {
           <Text className="form-text mt-6">
             {texts.footerText}
             <Link
-              href={screenManager.screen.editLink}
+              href={screenManager.screen.editLink ?? "#"}
               className="form-link ml-1"
             >
               {texts.footerLinkText}
