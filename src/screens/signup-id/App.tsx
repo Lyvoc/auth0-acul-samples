@@ -1,7 +1,7 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { SignupId as ScreenProvider } from "@auth0/auth0-acul-js";
 
-// UI Components
+// UI Components (shadcn)
 import Button from "../../components/Button";
 import { Label } from "../../components/Label";
 import { Input } from "../../components/Input";
@@ -14,49 +14,49 @@ import {
   CardContent,
 } from "../../components/Card";
 
-export default function App() {
-  const screenProvider = new ScreenProvider();
-  console.log("screenProvider: ", screenProvider);
+export default function SignupId() {
+  const screenManager = useMemo(() => new ScreenProvider(), []);
+
+  const [prefilled, setPrefilled] = useState<string>("");
+
+  // Pre-fill identifier from transaction/untrusted data if available
+  useEffect(() => {
+    const v =
+      (typeof screenManager.screen.data?.username === "string" &&
+        screenManager.screen.data.username) ||
+      (typeof screenManager.untrustedData.submittedFormData?.username ===
+        "string" &&
+        screenManager.untrustedData.submittedFormData.username) ||
+      "";
+    setPrefilled(v);
+  }, [screenManager]);
 
   const texts = {
-    title: screenProvider.screen.texts?.title ?? "Welcome",
+    title: screenManager.screen.texts?.title ?? "Create your account",
     description:
-      screenProvider.screen.texts?.description ?? "Login to continue",
-    emailPlaceholder:
-      screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
-    buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
+      screenManager.screen.texts?.description ??
+      "Enter your email or phone number to start",
+    placeholder:
+      screenManager.screen.texts?.emailPlaceholder ?? "you@example.com or +33…",
+    buttonText: screenManager.screen.texts?.buttonText ?? "Continue",
     footerText:
-      screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
-    footerLinkText:
-      screenProvider.screen.texts?.footerLinkText ?? "Create your account",
+      screenManager.screen.texts?.footerText ?? "Already have an account?",
+    footerLinkText: screenManager.screen.texts?.footerLinkText ?? "Log in",
   };
 
-  const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const identifierInput = event.target.querySelector(
+  const onSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const input = e.target.querySelector(
       "input#identifier"
     ) as HTMLInputElement;
 
-    try {
-      await screenProvider.signup({ username: identifierInput?.value });
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
+    // ACUL will advance the flow (to Signup Password, or passkeys/passwordless depending on your tenant)
+    await screenManager.signup({ username: input?.value });
   };
-
-  let identifierDefaultValue = "";
-  if (typeof screenProvider.screen.data?.username === "string") {
-    identifierDefaultValue = screenProvider.screen.data.username;
-  } else if (
-    typeof screenProvider.untrustedData.submittedFormData?.username === "string"
-  ) {
-    identifierDefaultValue =
-      screenProvider.untrustedData.submittedFormData.username;
-  }
 
   return (
     <div className="app-container">
-      <form noValidate onSubmit={formSubmitHandler} className="card">
+      <form noValidate onSubmit={onSubmit} className="card">
         <CardHeader className="card-header">
           <CardTitle>{texts.title}</CardTitle>
           <CardDescription>{texts.description}</CardDescription>
@@ -65,16 +65,23 @@ export default function App() {
         <CardContent className="card-content">
           <div className="form-group">
             <Label htmlFor="identifier" className="form-label">
-              {texts.emailPlaceholder}
+              {texts.placeholder}
             </Label>
             <Input
               id="identifier"
               name="identifier"
-              defaultValue={identifierDefaultValue}
-              placeholder="john@example.com"
+              defaultValue={prefilled}
+              placeholder="you@example.com"
+              autoComplete="username webauthn"
+              inputMode="email"
               autoFocus
               className="form-input"
             />
+
+            {/* Optional: country picker for phone identifiers */}
+            {/* <Button type="button" variant="ghost" onClick={() => screen.pickCountryCode()}>
+              Change country code
+            </Button> */}
           </div>
 
           <Button type="submit" className="form-button">
@@ -84,7 +91,7 @@ export default function App() {
           <Text className="form-text mt-6">
             {texts.footerText}
             <Link
-              // href={screenProvider.screen.signupLink ?? "#"}
+              href={screenManager.screen.loginLink ?? "#"}
               className="form-link ml-1"
             >
               {texts.footerLinkText}
