@@ -46,12 +46,36 @@ export default function SignupId() {
 
   const onSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const input = e.target.querySelector(
-      "input#identifier"
-    ) as HTMLInputElement;
 
-    // ACUL will advance the flow (to Signup Password, or passkeys/passwordless depending on your tenant)
-    await screenManager.signup({ username: input?.value });
+    const input =
+      e.currentTarget.querySelector<HTMLInputElement>("#identifier");
+    const raw = (input?.value ?? "").trim();
+    if (!raw) {
+      alert("Please enter an email, phone number, or username.");
+      return;
+    }
+
+    // Decide which field to send based on the input
+    const isEmail = /.+@.+\..+/.test(raw);
+    const isPhone = /^\+?\d[\d\s()-]{5,}$/.test(raw);
+    const payload: Record<string, string> = isEmail
+      ? { email: raw }
+      : isPhone
+      ? { phone: raw }
+      : { username: raw };
+
+    try {
+      await screenManager.signup(payload);
+      // ACUL will advance the flow (to Signup Password, passkey, etc.)
+    } catch (err) {
+      const errs =
+        (screenManager as any)?.transaction?.getErrors?.() ??
+        (screenManager as any)?.transaction?.errors ??
+        [];
+      const msg = errs[0]?.message || "Signup failed. Please try again.";
+      console.error(err);
+      alert(msg);
+    }
   };
 
   return (
