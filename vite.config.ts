@@ -10,6 +10,7 @@ const screens = [
   "signup-password",
   "mfa-phone-enrollment",
   "mfa-sms-challenge",
+  "passkey-enrollment",
 ];
 
 // Generate input object for all screens

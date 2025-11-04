@@ -1,132 +1,167 @@
-import { ChangeEvent, useMemo, useState } from "react";
-import { SignupPassword as ScreenProvider } from "@auth0/auth0-acul-js";
-
-// UI Components (shadcn)
+import React, { useState } from "react";
+import SignupPassword from "@auth0/auth0-acul-js/signup-password";
 import Button from "../../components/Button";
-import { Label } from "../../components/Label";
-import { Input } from "../../components/Input";
-import { Text } from "../../components/Text";
-import { Link } from "../../components/Link";
-import {
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "../../components/Card";
 
-export default function SignupPassword() {
-  const screenManager = useMemo(() => new ScreenProvider(), []);
-  const [error, setError] = useState<string>("");
-  const serverErrors = screenManager.transaction?.errors ?? [];
+const SignupPasswordScreen: React.FC = () => {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
-  const texts = {
-    title: screenManager.screen.texts?.title ?? "Set your password",
-    description:
-      screenManager.screen.texts?.description ??
-      "Choose a strong password to finish creating your account.",
-    passwordPlaceholder:
-      screenManager.screen.texts?.passwordPlaceholder ?? "Enter password",
-    confirmPlaceholder:
-      screenManager.screen.texts?.confirmPasswordPlaceholder ??
-      "Confirm password",
-    buttonText: screenManager.screen.texts?.buttonText ?? "Create account",
-    footerText:
-      screenManager.screen.texts?.footerText ?? "Used a wrong email/phone?",
-    footerLinkText: screenManager.screen.texts?.footerLinkText ?? "Go back",
-  };
+  const signupPasswordManager = new SignupPassword();
 
-  const onSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
+  const email = signupPasswordManager.screen.data?.email || "";
+  const phone = signupPasswordManager.screen.data?.phoneNumber || "";
+  const username = signupPasswordManager.screen.data?.username || "";
+
+  const title = signupPasswordManager.screen.texts?.title || "";
+  const description = signupPasswordManager.screen.texts?.description || "";
+
+  const { isValid, results } = signupPasswordManager.validatePassword(password);
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess(false);
 
-    const passwordInput = e.target.querySelector(
-      "input#password"
-    ) as HTMLInputElement;
-    const confirmInput = e.target.querySelector(
-      "input#confirm-password"
-    ) as HTMLInputElement;
-
-    // Basic client check; server-side policy enforcement still applies
-    if (confirmInput?.value && confirmInput.value !== passwordInput?.value) {
-      setError("Passwords do not match.");
+    if (!email || !password) {
+      setError("Email and password are required.");
       return;
     }
 
-    // ACUL will complete signup and redirect/advance per your tenant configuration
-    await screenManager.signup({
-      password: passwordInput?.value,
-      // If you capture additional fields (e.g., terms), include them here as well
-      // termsAccepted: true
-    });
+    if (!isValid) return;
+
+    try {
+      await signupPasswordManager.signup({ email, username, phone, password });
+      setSuccess(true);
+    } catch {
+      setError("Signup failed. Please try again later.");
+    }
   };
 
   return (
-    <div className="app-container">
-      <form noValidate onSubmit={onSubmit} className="card">
-        <CardHeader className="card-header">
-          <CardTitle>{texts.title}</CardTitle>
-          <CardDescription>{texts.description}</CardDescription>
-        </CardHeader>
+    <div className="prompt-container">
+      {/* Title Section (inline, not imported) */}
+      <div className="title-container">
+        <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          {title}
+        </h1>
+        <div>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            {description}
+          </p>
+        </div>
+      </div>
 
-        <CardContent className="card-content">
-          <div className="form-group">
-            <Label htmlFor="password" className="form-label">
-              {texts.passwordPlaceholder}
-            </Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="new-password"
-              autoFocus
-              className="form-input"
-            />
-          </div>
-
-          <div className="form-group mt-3">
-            <Label htmlFor="confirm-password" className="form-label">
-              {texts.confirmPlaceholder}
-            </Label>
-            <Input
-              id="confirm-password"
-              name="confirm-password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="new-password"
-              className="form-input"
-            />
-          </div>
-
-          {/* Optional: show server-side password policy hints */}
-          {/* <Text className="form-text mt-2">
-            {screen.screen.passwordPolicyHint ?? ""}
-          </Text> */}
-
-          <Button type="submit" className="form-button mt-4">
-            {texts.buttonText}
-          </Button>
-
-          {(error || serverErrors.length > 0) && (
-            <div className="mt-3 text-sm text-red-600">
-              {error && <p>{error}</p>}
-              {serverErrors.map((er: { code: string; message: string }) => (
-                <p key={er.code}>{er.message}</p>
-              ))}
+      {/* Form */}
+      <div className="input-container">
+        <form onSubmit={handleSignup}>
+          {email && (
+            <div>
+              <label>Email</label>
+              <input
+                type="email"
+                id="email"
+                placeholder="Enter your email"
+                value={email}
+                disabled
+              />
             </div>
           )}
 
-          <Text className="form-text mt-6">
-            {texts.footerText}
-            <Link
-              href={screenManager.screen.editLink ?? "#"}
-              className="form-link ml-1"
-            >
-              {texts.footerLinkText}
-            </Link>
-          </Text>
-        </CardContent>
-      </form>
+          {username && (
+            <div>
+              <label>Username</label>
+              <input
+                type="text"
+                id="username"
+                placeholder="Enter your username"
+                value={username}
+                disabled
+              />
+            </div>
+          )}
+
+          {phone && (
+            <div>
+              <label>Phone</label>
+              <input
+                type="tel"
+                id="phone"
+                placeholder="Enter your phone number"
+                value={phone}
+                disabled
+              />
+            </div>
+          )}
+
+          <label>Password</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={!isValid && password.length > 0 ? "error" : ""}
+          />
+
+          {/* Password Validation Rules */}
+
+          {password.length > 0 && results.length > 0 && (
+            <div className="mt-2 border border-gray-300 rounded p-2 text-sm">
+              <p className="text-gray-700 mb-1">Your password must contain:</p>
+              <ul className="list-disc ml-4">
+                {results.map((rule) => (
+                  <li
+                    key={rule.code}
+                    className={
+                      rule.status === "valid"
+                        ? "text-green-600"
+                        : "text-gray-700"
+                    }
+                  >
+                    {rule.label}
+                    {rule.items && rule.items.length > 0 && (
+                      <ul className="ml-5 list-disc">
+                        {rule.items.map((sub) => (
+                          <li
+                            key={sub.code}
+                            className={
+                              sub.status === "valid"
+                                ? "text-green-600"
+                                : "text-gray-700"
+                            }
+                          >
+                            {sub.label}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {/* Error & Success messages */}
+          {error && (
+            <div className="error-container">
+              <p>{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="success-message">
+              Signup successful! Please check your email to verify your account.
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <div className="button-container">
+            <Button onClick={() => handleSignup}>Sign Up</Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
-}
+};
+
+export default SignupPasswordScreen;
