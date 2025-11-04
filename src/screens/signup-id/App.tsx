@@ -96,7 +96,7 @@ export default function SignupId() {
               name="identifier"
               defaultValue={prefilled}
               placeholder="you@example.com"
-              autoComplete="username webauthn"
+              autoComplete="username"
               inputMode="email"
               autoFocus
               className="form-input"
