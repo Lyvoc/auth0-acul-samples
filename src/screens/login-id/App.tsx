@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { LoginId as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
@@ -15,8 +15,54 @@ import {
 } from "../../components/Card";
 
 export default function App() {
-  const screenProvider = new ScreenProvider();
-  console.log("screenProvider: ", screenProvider);
+  const screenProvider = useMemo(() => new ScreenProvider(), []);
+
+  const [passkeySupported, setPasskeySupported] = useState(false);
+  const [conditionalMediation, setConditionalMediation] = useState(false);
+  console.log("Render App: ", { passkeySupported, conditionalMediation });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    screenProvider
+      .registerPasskeyAutofill("username")
+      .catch((error: unknown) => {
+        console.warn("Failed to register passkey autofill", { error });
+      });
+  }, [screenProvider]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkSupport = async () => {
+      try {
+        const hasPlatform =
+          typeof PublicKeyCredential !== "undefined" &&
+          (await (
+            PublicKeyCredential as any
+          ).isUserVerifyingPlatformAuthenticatorAvailable?.()) === true;
+        console.log("Passkey platform authenticator available: ", hasPlatform);
+
+        const hasConditional =
+          typeof PublicKeyCredential !== "undefined" &&
+          (await (
+            PublicKeyCredential as any
+          ).isConditionalMediationAvailable?.()) === true;
+        console.log(
+          "Passkey conditional mediation available: ",
+          hasConditional
+        );
+
+        setPasskeySupported(Boolean(hasPlatform));
+        setConditionalMediation(Boolean(hasConditional));
+      } catch {
+        setPasskeySupported(false);
+        setConditionalMediation(false);
+      }
+    };
+
+    void checkSupport();
+  }, []);
 
   const texts = {
     title: screenProvider.screen.texts?.title ?? "Welcome",
@@ -40,6 +86,7 @@ export default function App() {
     try {
       await screenProvider.login({ username: identifierInput?.value });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Login failed:", error);
     }
   };
@@ -53,6 +100,8 @@ export default function App() {
     identifierDefaultValue =
       screenProvider.untrustedData.submittedFormData.username;
   }
+
+  const showPasskeyHint = passkeySupported && conditionalMediation;
 
   return (
     <div className="app-container">
@@ -74,7 +123,17 @@ export default function App() {
               placeholder="john@example.com"
               autoFocus
               className="form-input"
+              // Tip: autocomplete helps some browsers with conditional UI
+              autoComplete="username webauthn"
+              inputMode="email"
             />
+            {showPasskeyHint && (
+              <Text className="form-text mt-2" aria-live="polite">
+                Passkey available on this device ✨
+                {/* Conditional UI will show the native account picker;
+                    no extra click needed. This is just a hint. */}
+              </Text>
+            )}
           </div>
 
           <Button type="submit" className="form-button">
