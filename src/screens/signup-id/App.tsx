@@ -1,215 +1,128 @@
-import React, { useState, useEffect } from "react";
-import SignupId from "@auth0/auth0-acul-js/signup-id";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { SignupId as ScreenProvider } from "@auth0/auth0-acul-js";
+
+// UI Components (shadcn)
 import Button from "../../components/Button";
+import { Label } from "../../components/Label";
+import { Input } from "../../components/Input";
+import { Text } from "../../components/Text";
+import { Link } from "../../components/Link";
+import {
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "../../components/Card";
 
-const SignupIdScreen: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [username, setUsername] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [identifiers, setIdentifiers] = useState<
-    Array<{ type: string; required: boolean }>
-  >([]);
+export default function SignupId() {
+  const screenManager = useMemo(() => new ScreenProvider(), []);
 
-  const screenManager = new SignupId();
+  const [prefilled, setPrefilled] = useState<string>("");
 
-  const title = screenManager.screen.texts?.title || "";
-  const description = screenManager.screen.texts?.description || "";
-  const federatedConnections =
-    screenManager.transaction.alternateConnections ?? [];
-  const links = screenManager.screen.links ?? {};
-
-  const { isValid, errors } = screenManager.validateUsername(username);
-
+  // Pre-fill identifier from transaction/untrusted data if available
   useEffect(() => {
-    const enabledIds = screenManager.getSignupIdentifiers();
-    setIdentifiers(enabledIds ?? []);
-  }, []);
+    const v =
+      (typeof screenManager.screen.data?.username === "string" &&
+        screenManager.screen.data.username) ||
+      (typeof screenManager.untrustedData.submittedFormData?.username ===
+        "string" &&
+        screenManager.untrustedData.submittedFormData.username) ||
+      "";
+    setPrefilled(v);
+  }, [screenManager]);
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess(false);
-
-    const emailRequired = identifiers.find(
-      (id) => id.type === "email"
-    )?.required;
-    const phoneRequired = identifiers.find(
-      (id) => id.type === "phone"
-    )?.required;
-    const usernameRequired = identifiers.find(
-      (id) => id.type === "username"
-    )?.required;
-
-    if (emailRequired && !email) {
-      setError("Email is required.");
-      return;
-    }
-    if (phoneRequired && !phone) {
-      setError("Phone number is required.");
-      return;
-    }
-    if (usernameRequired && !username) {
-      setError("Username is required.");
-      return;
-    }
-
-    if (!isValid) {
-      setError(errors[0].message);
-      return;
-    }
-
-    try {
-      await screenManager.signup({
-        email,
-        phone,
-        username,
-      });
-      setSuccess(true);
-    } catch {
-      setError("Signup failed. Please try again later.");
-    }
+  const texts = {
+    title: screenManager.screen.texts?.title ?? "Create your account",
+    description:
+      screenManager.screen.texts?.description ??
+      "Enter your email or phone number to start",
+    placeholder:
+      screenManager.screen.texts?.emailPlaceholder ?? "you@example.com or +33…",
+    buttonText: screenManager.screen.texts?.buttonText ?? "Continue",
+    footerText:
+      screenManager.screen.texts?.footerText ?? "Already have an account?",
+    footerLinkText: screenManager.screen.texts?.footerLinkText ?? "Log in",
   };
 
-  const handleFederatedSignup = (connectionName: string) => {
-    screenManager.federatedSignup({ connection: connectionName });
+  const onSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const input =
+      e.currentTarget.querySelector<HTMLInputElement>("#identifier");
+    const raw = (input?.value ?? "").trim();
+    if (!raw) {
+      alert("Please enter an email, phone number, or username.");
+      return;
+    }
+
+    // Decide which field to send based on the input
+    const isEmail = /.+@.+\..+/.test(raw);
+    const isPhone = /^\+?\d[\d\s()-]{5,}$/.test(raw);
+    const payload: Record<string, string> = isEmail
+      ? { email: raw }
+      : isPhone
+      ? { phone: raw }
+      : { username: raw };
+
+    try {
+      await screenManager.signup(payload);
+      // ACUL will advance the flow (to Signup Password, passkey, etc.)
+    } catch (err) {
+      const errs =
+        (screenManager as any)?.transaction?.getErrors?.() ??
+        (screenManager as any)?.transaction?.errors ??
+        [];
+      const msg = errs[0]?.message || "Signup failed. Please try again.";
+      console.error(err);
+      alert(msg);
+    }
   };
 
   return (
-    <div className="prompt-container">
-      {/* Title Section */}
-      <div className="title-container">
-        <h1 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {title}
-        </h1>
-        <div>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {description}
-          </p>
-        </div>
-      </div>
+    <div className="app-container">
+      <form noValidate onSubmit={onSubmit} className="card">
+        <CardHeader className="card-header">
+          <CardTitle>{texts.title}</CardTitle>
+          <CardDescription>{texts.description}</CardDescription>
+        </CardHeader>
 
-      {/* Form Section */}
-      <div className="input-container">
-        <form onSubmit={handleSignup}>
-          {/* Email */}
-          {identifiers.find((id) => id.type === "email") && (
-            <div>
-              <label>
-                Email{" "}
-                {identifiers.find((id) => id.type === "email")?.required && "*"}
-              </label>
-              <input
-                type="email"
-                id="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
-              />
-            </div>
-          )}
+        <CardContent className="card-content">
+          <div className="form-group">
+            <Label htmlFor="identifier" className="form-label">
+              {texts.placeholder}
+            </Label>
+            <Input
+              id="identifier"
+              name="identifier"
+              defaultValue={prefilled}
+              placeholder="you@example.com"
+              autoComplete="username webauthn"
+              inputMode="email"
+              autoFocus
+              className="form-input"
+            />
 
-          {/* Phone */}
-          {identifiers.find((id) => id.type === "phone") && (
-            <div>
-              <label>
-                Phone{" "}
-                {identifiers.find((id) => id.type === "phone")?.required && "*"}
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                placeholder="Enter your phone number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="input-field"
-              />
-            </div>
-          )}
-
-          {/* Username */}
-          {identifiers.find((id) => id.type === "username") && (
-            <div>
-              <label>
-                Username{" "}
-                {identifiers.find((id) => id.type === "username")?.required &&
-                  "*"}
-              </label>
-              <input
-                type="text"
-                id="username"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className={`input-field ${
-                  username && !isValid ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-
-              {username.length > 0 && errors.length > 0 && (
-                <ul className="mt-1 text-sm text-red-500">
-                  {errors.map((err, i) => (
-                    <li key={i}>{err.message}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-
-          {/* Error & Success Messages */}
-          {error && (
-            <div className="error-container">
-              <p>{error}</p>
-            </div>
-          )}
-          {success && (
-            <div className="success-message">
-              Signup successful! Please check your email to verify your account.
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <div className="button-container">
-            <Button onClick={() => handleSignup}>Sign Up</Button>
+            {/* Optional: country picker for phone identifiers */}
+            {/* <Button type="button" variant="ghost" onClick={() => screen.pickCountryCode()}>
+              Change country code
+            </Button> */}
           </div>
-        </form>
 
-        {/* Login Link */}
-        {links?.login && (
-          <div className="mt-6 text-center text-sm">
-            <span>Already have an account?</span>
-            <a
-              href={links.loginLink}
-              className="text-indigo-600 hover:underline"
-            >
-              Log in
-            </a>
-          </div>
-        )}
-        {/* OR separator */}
-        <div className="flex items-center my-4">
-          <div className="flex-1 border-t border-gray-300"></div>
-          <span className="px-3 text-sm text-gray-400">OR</span>
-          <div className="flex-1 border-t border-gray-300"></div>
-        </div>
+          <Button type="submit" className="form-button">
+            {texts.buttonText}
+          </Button>
 
-        {/* Google login */}
-        {federatedConnections.length > 0 &&
-          federatedConnections.map((conn: any) => (
-            <button
-              key={conn.name}
-              onClick={() => handleFederatedSignup(conn.name)}
-              className="w-full flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          <Text className="form-text mt-6">
+            {texts.footerText}
+            <Link
+              href={screenManager.screen.loginLink ?? "#"}
+              className="form-link ml-1"
             >
-              {/* <img src="/google-icon.svg" alt="" className="h-4 w-4" /> */}
-              Continue with {conn.options?.display_name || conn.name}
-            </button>
-          ))}
-      </div>
+              {texts.footerLinkText}
+            </Link>
+          </Text>
+        </CardContent>
+      </form>
     </div>
   );
-};
-
-export default SignupIdScreen;
+}
