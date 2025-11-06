@@ -14,10 +14,21 @@ import {
   CardContent,
 } from "../../components/Card";
 
+// Updated Method type to match lean payload (passwordless methods carry a `value`)
 type Method =
   | { type: "password"; label?: string }
-  | { type: "passwordless_email"; connection: string; label?: string }
-  | { type: "passwordless_phone"; connection: string; label?: string }
+  | {
+      type: "passwordless_email";
+      connection: string;
+      value: string;
+      label?: string;
+    }
+  | {
+      type: "passwordless_phone";
+      connection: string;
+      value: string;
+      label?: string;
+    }
   | { type: "enterprise"; connection: string; label?: string };
 
 export default function App() {
@@ -120,6 +131,7 @@ export default function App() {
         throw new Error(`Methods API responded ${res.status}`);
       }
 
+      // Expecting lean payload: { methods: Method[] }
       const payload = (await res.json()) as {
         methods: Method[];
       };
@@ -143,8 +155,17 @@ export default function App() {
     });
   };
 
-  const choosePasswordless = async (connection: string) => {
-    await screenManager.login({ username: identifier, connection });
+  // For passwordless, prefer the method's provided `value` over current identifier
+  const choosePasswordless = async (
+    method: Extract<
+      Method,
+      { type: "passwordless_email" | "passwordless_phone" }
+    >
+  ) => {
+    const v = method.value || identifier;
+    // Optional: keep local state in sync (input uses defaultValue, so this is just for consistency)
+    setIdentifier(v);
+    await screenManager.login({ username: v, connection: method.connection });
   };
 
   return (
@@ -217,7 +238,13 @@ export default function App() {
                   } else if (m.type === "enterprise") {
                     onClick = () => void chooseEnterprise(m.connection);
                   } else {
-                    onClick = () => void choosePasswordless(m.connection);
+                    onClick = () =>
+                      void choosePasswordless(
+                        m as Extract<
+                          Method,
+                          { type: "passwordless_email" | "passwordless_phone" }
+                        >
+                      );
                   }
 
                   return (
