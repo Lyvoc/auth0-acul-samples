@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { SignupId as ScreenProvider } from "@auth0/auth0-acul-js";
+import { SignupId as screenManager } from "@auth0/auth0-acul-js";
 
 // UI Components (shadcn)
 import Button from "../../components/Button";
@@ -15,7 +15,7 @@ import {
 } from "../../components/Card";
 
 export default function SignupId() {
-  const screenManager = useMemo(() => new ScreenProvider(), []);
+  const screenManager = useMemo(() => new screenManager(), []);
 
   const [prefilled, setPrefilled] = useState<string>("");
 

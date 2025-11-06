@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { MfaPhoneEnrollment as ScreenProvider } from "@auth0/auth0-acul-js";
+import { MfaPhoneEnrollment as screenManager } from "@auth0/auth0-acul-js";
 
 // UI Components
 import Button from "../../components/Button";
@@ -16,27 +16,27 @@ import {
 import { useState } from "react";
 
 export default function App() {
-  const screenProvider = new ScreenProvider();
-  console.log("screenProvider: ", screenProvider);
+  const screenManager = new screenManager();
+  console.log("screenManager: ", screenManager);
   const [type, setType] = useState("");
 
-  const handleSelect = (selectedType: string ) => {
+  const handleSelect = (selectedType: string) => {
     setType(selectedType);
   };
 
   // const texts = {
-  //   title: screenProvider.screen.texts?.title ?? "Welcome",
+  //   title: screenManager.screen.texts?.title ?? "Welcome",
   //   description:
-  //     screenProvider.screen.texts?.description ?? "Login to continue",
+  //     screenManager.screen.texts?.description ?? "Login to continue",
   //   emailPlaceholder:
-  //     screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
-  //   buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
+  //     screenManager.screen.texts?.emailPlaceholder ?? "Enter your email",
+  //   buttonText: screenManager.screen.texts?.buttonText ?? "Continue",
   //   footerText:
-  //     screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
+  //     screenManager.screen.texts?.footerText ?? "Don't have an account yet?",
   //   footerLinkText:
-  //     screenProvider.screen.texts?.footerLinkText ?? "Create your account",
+  //     screenManager.screen.texts?.footerLinkText ?? "Create your account",
   // };
-  const texts = screenProvider.screen.texts
+  const texts = screenManager.screen.texts;
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -45,28 +45,33 @@ export default function App() {
     ) as HTMLInputElement;
 
     try {
-      if(type === "sms"){
-        await screenProvider.continueEnrollment({ phone: identifierInput?.value,type : "sms" });
-      }else{
-        await screenProvider.continueEnrollment({ phone: identifierInput?.value,type : "voice" });
+      if (type === "sms") {
+        await screenManager.continueEnrollment({
+          phone: identifierInput?.value,
+          type: "sms",
+        });
+      } else {
+        await screenManager.continueEnrollment({
+          phone: identifierInput?.value,
+          type: "voice",
+        });
       }
-      
     } catch (error) {
       console.error("Login failed:", error);
     }
   };
 
   let identifierDefaultValue = "";
-  if (typeof screenProvider.screen.data?.username === "string") {
-    identifierDefaultValue = screenProvider.screen.data.username;
+  if (typeof screenManager.screen.data?.username === "string") {
+    identifierDefaultValue = screenManager.screen.data.username;
   } else if (
-    typeof screenProvider.untrustedData.submittedFormData?.username === "string"
+    typeof screenManager.untrustedData.submittedFormData?.username === "string"
   ) {
     identifierDefaultValue =
-      screenProvider.untrustedData.submittedFormData.username;
+      screenManager.untrustedData.submittedFormData.username;
   }
-  let phoneNumber = screenProvider.screen.data?.phoneNumber
-  console.log('Phone number for challenge:', phoneNumber);
+  let phoneNumber = screenManager.screen.data?.phoneNumber;
+  console.log("Phone number for challenge:", phoneNumber);
   return (
     <div className="app-container">
       <form noValidate onSubmit={formSubmitHandler} className="card">
@@ -94,19 +99,27 @@ export default function App() {
             {texts?.continueButtonText}
           </Button>
           <button
-            type = "button"
+            type="button"
             onClick={() => handleSelect("sms")}
             className={`px-4 py-2 rounded-lg border 
-              ${type === "sms" ? "bg-blue-600 text-white" : "bg-white text-gray-800 border-gray-300"}
+              ${
+                type === "sms"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-800 border-gray-300"
+              }
               transition duration-200 shadow-md`}
           >
             SMS
           </button>
           <button
-            type = "button"
+            type="button"
             onClick={() => handleSelect("voice")}
             className={`px-4 py-2 rounded-lg border 
-              ${type === "voice" ? "bg-blue-600 text-white" : "bg-white text-gray-800 border-gray-300"}
+              ${
+                type === "voice"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-800 border-gray-300"
+              }
               transition duration-200 shadow-md`}
           >
             Voice Call
@@ -115,7 +128,7 @@ export default function App() {
           <Text className="form-text mt-6">
             {texts?.footerText}
             <Link
-              // href={screenProvider.screen.signupLink ?? "#"}
+              // href={screenManager.screen.signupLink ?? "#"}
               className="form-link ml-1"
             >
               {texts?.footerLinkText}

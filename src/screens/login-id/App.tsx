@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { LoginId as ScreenProvider } from "@auth0/auth0-acul-js";
+import { LoginId } from "@auth0/auth0-acul-js";
 
 // UI Components
 import Button from "../../components/Button";
@@ -14,94 +14,138 @@ import {
   CardContent,
 } from "../../components/Card";
 
-export default function App() {
-  const screenProvider = useMemo(() => new ScreenProvider(), []);
+type Method =
+  | { type: "password"; label?: string }
+  | { type: "passwordless_email"; connection: string; label?: string }
+  | { type: "passwordless_phone"; connection: string; label?: string }
+  | { type: "enterprise"; connection: string; label?: string };
 
+export default function App() {
+  const screenManager = useMemo(() => new LoginId(), []);
+
+  // passkey UI (unchanged)
   const [passkeySupported, setPasskeySupported] = useState(false);
   const [conditionalMediation, setConditionalMediation] = useState(false);
-  console.log("Render App: ", { passkeySupported, conditionalMediation });
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  // new state for dynamic methods
+  const [identifier, setIdentifier] = useState("");
+  const [methods, setMethods] = useState<Method[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
-    screenProvider
-      .registerPasskeyAutofill("username")
-      .catch((error: unknown) => {
-        console.warn("Failed to register passkey autofill", { error });
-      });
-  }, [screenProvider]);
+  // useEffect(() => {
+  //   screenManager
+  //     .registerPasskeyAutofill("username")
+  //     .catch((error: unknown) => {
+  //       console.warn("Failed to register passkey autofill", { error });
+  //     });
+  // }, [screenManager]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  // useEffect(() => {
+  //   const checkSupport = async () => {
+  //     try {
+  //       const hasPlatform =
+  //         typeof PublicKeyCredential !== "undefined" &&
+  //         (await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable?.()) ===
+  //           true;
 
-    const checkSupport = async () => {
-      try {
-        const hasPlatform =
-          typeof PublicKeyCredential !== "undefined" &&
-          (await (
-            PublicKeyCredential as any
-          ).isUserVerifyingPlatformAuthenticatorAvailable?.()) === true;
-        console.log("Passkey platform authenticator available: ", hasPlatform);
+  //       const hasConditional =
+  //         typeof PublicKeyCredential !== "undefined" &&
+  //         (await PublicKeyCredential.isConditionalMediationAvailable?.()) ===
+  //           true;
 
-        const hasConditional =
-          typeof PublicKeyCredential !== "undefined" &&
-          (await (
-            PublicKeyCredential as any
-          ).isConditionalMediationAvailable?.()) === true;
-        console.log(
-          "Passkey conditional mediation available: ",
-          hasConditional
-        );
-
-        setPasskeySupported(Boolean(hasPlatform));
-        setConditionalMediation(Boolean(hasConditional));
-      } catch {
-        setPasskeySupported(false);
-        setConditionalMediation(false);
-      }
-    };
-
-    void checkSupport();
-  }, []);
+  //       setPasskeySupported(Boolean(hasPlatform));
+  //       setConditionalMediation(Boolean(hasConditional));
+  //     } catch {
+  //       setPasskeySupported(false);
+  //       setConditionalMediation(false);
+  //     }
+  //   };
+  //   void checkSupport();
+  // }, []);
 
   const texts = {
-    title: screenProvider.screen.texts?.title ?? "Welcome",
-    description:
-      screenProvider.screen.texts?.description ?? "Login to continue",
+    title: screenManager.screen.texts?.title ?? "Welcome",
+    description: screenManager.screen.texts?.description ?? "Login to continue",
     emailPlaceholder:
-      screenProvider.screen.texts?.emailPlaceholder ?? "Enter your email",
-    buttonText: screenProvider.screen.texts?.buttonText ?? "Continue",
+      screenManager.screen.texts?.emailPlaceholder ?? "Email or phone number",
+    buttonText: screenManager.screen.texts?.buttonText ?? "Continue",
     footerText:
-      screenProvider.screen.texts?.footerText ?? "Don't have an account yet?",
+      screenManager.screen.texts?.footerText ?? "Don't have an account yet?",
     footerLinkText:
-      screenProvider.screen.texts?.footerLinkText ?? "Create your account",
+      screenManager.screen.texts?.footerLinkText ?? "Create your account",
   };
 
-  const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const identifierInput = event.target.querySelector(
-      "input#identifier"
-    ) as HTMLInputElement;
-
-    try {
-      await screenProvider.login({ username: identifierInput?.value });
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error("Login failed:", error);
-    }
-  };
-
+  // prefill identifier from context/untrustedData
   let identifierDefaultValue = "";
-  if (typeof screenProvider.screen.data?.username === "string") {
-    identifierDefaultValue = screenProvider.screen.data.username;
+  if (typeof screenManager.screen.data?.username === "string") {
+    identifierDefaultValue = screenManager.screen.data.username;
   } else if (
-    typeof screenProvider.untrustedData.submittedFormData?.username === "string"
+    typeof screenManager.untrustedData.submittedFormData?.username === "string"
   ) {
     identifierDefaultValue =
-      screenProvider.untrustedData.submittedFormData.username;
+      screenManager.untrustedData.submittedFormData.username;
   }
 
   const showPasskeyHint = passkeySupported && conditionalMediation;
+
+  // Submit: call external API to fetch available methods
+  const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setApiError(null);
+    setLoading(true);
+    setMethods(null);
+
+    const input = event.target.querySelector(
+      "input#identifier"
+    ) as HTMLInputElement;
+    const value = input?.value?.trim() || "";
+    setIdentifier(value);
+
+    try {
+      // NOTE: your Okta Workflows endpoint here
+      const res = await fetch(
+        "https://test-api.free.beeceptor.com/check-methods",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            identifier: value,
+          }),
+          credentials: "omit",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`Methods API responded ${res.status}`);
+      }
+
+      const payload = (await res.json()) as {
+        methods: Method[];
+      };
+
+      setMethods(payload.methods || []);
+    } catch (e: unknown) {
+      console.error("Failed to fetch methods", e);
+      setApiError("We couldn't look up your available sign-in methods.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const choosePassword = async () => {
+    await screenManager.login({ username: identifier });
+  };
+
+  const chooseEnterprise = async (connection: string) => {
+    screenManager.federatedLogin({
+      connection: connection,
+    });
+  };
+
+  const choosePasswordless = async (connection: string) => {
+    await screenManager.login({ username: identifier, connection });
+  };
 
   return (
     <div className="app-container">
@@ -112,6 +156,7 @@ export default function App() {
         </CardHeader>
 
         <CardContent className="card-content">
+          {/* Step 1: Identifier input (always visible) */}
           <div className="form-group">
             <Label htmlFor="identifier" className="form-label">
               {texts.emailPlaceholder}
@@ -120,10 +165,9 @@ export default function App() {
               id="identifier"
               name="identifier"
               defaultValue={identifierDefaultValue}
-              placeholder="john@example.com"
+              placeholder="john@example.com or +15551234567"
               autoFocus
               className="form-input"
-              // Tip: autocomplete helps some browsers with conditional UI
               autoComplete="username webauthn"
               inputMode="email"
             />
@@ -131,7 +175,7 @@ export default function App() {
               <button
                 type="button"
                 className="form-text mt-2 underline cursor-pointer text-left"
-                onClick={() => screenProvider.passkeyLogin()}
+                onClick={() => screenManager.passkeyLogin()}
                 aria-live="polite"
               >
                 Passkey available on this device ✨ — Click to use
@@ -139,14 +183,62 @@ export default function App() {
             )}
           </div>
 
-          <Button type="submit" className="form-button">
-            {texts.buttonText}
+          {/* Primary submit triggers the methods lookup */}
+          <Button type="submit" className="form-button" disabled={loading}>
+            {loading ? "Checking…" : texts.buttonText}
           </Button>
+
+          {/* Step 2: Show available methods */}
+          {apiError && (
+            <Text className="form-text mt-4 text-red-600">{apiError}</Text>
+          )}
+
+          {methods && (
+            <div className="mt-6">
+              <Text className="form-text mb-2">Choose a sign-in method:</Text>
+              <div className="grid gap-2">
+                {methods.map((m, idx) => {
+                  let label: string;
+                  if (m.label) {
+                    label = m.label;
+                  } else if (m.type === "password") {
+                    label = "Password";
+                  } else if (m.type === "passwordless_email") {
+                    label = "Email magic link / code";
+                  } else if (m.type === "passwordless_phone") {
+                    label = "SMS code";
+                  } else {
+                    label = "Enterprise SSO";
+                  }
+
+                  let onClick: () => void;
+                  if (m.type === "password") {
+                    onClick = () => void choosePassword();
+                  } else if (m.type === "enterprise") {
+                    onClick = () => void chooseEnterprise(m.connection);
+                  } else {
+                    onClick = () => void choosePasswordless(m.connection);
+                  }
+
+                  return (
+                    <Button
+                      key={`${m.type}-${idx}`}
+                      type="button"
+                      className="w-full justify-start"
+                      onClick={onClick}
+                    >
+                      {label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <Text className="form-text mt-6">
             {texts.footerText}
             <Link
-              href={screenProvider.screen.signupLink ?? "#"}
+              href={screenManager.screen.signupLink ?? "#"}
               className="form-link ml-1"
             >
               {texts.footerLinkText}

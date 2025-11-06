@@ -30,8 +30,7 @@ export default function App() {
       screenProvider.screen.texts?.forgotPasswordText ??
       "Forgot your Password?",
     editEmailText: screenProvider.screen.texts?.editEmailText ?? "Edit Email",
-    emailPlaceholder:
-      screenProvider.screen.texts?.emailPlaceholder ?? "Email",
+    emailPlaceholder: screenProvider.screen.texts?.emailPlaceholder ?? "Email",
   };
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
