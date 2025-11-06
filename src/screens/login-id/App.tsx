@@ -155,7 +155,6 @@ export default function App() {
     });
   };
 
-  // For passwordless, prefer the method's provided `value` over current identifier
   const choosePasswordless = async (
     method: Extract<
       Method,
@@ -220,16 +219,14 @@ export default function App() {
               <div className="grid gap-2">
                 {methods.map((m, idx) => {
                   let label: string;
-                  if (m.label) {
-                    label = m.label;
-                  } else if (m.type === "password") {
+                  if (m.type === "password") {
                     label = "Password";
                   } else if (m.type === "passwordless_email") {
-                    label = "Email magic link / code";
+                    label = `Passwordless Email : ${m.value ?? identifier}`;
                   } else if (m.type === "passwordless_phone") {
-                    label = "SMS code";
+                    label = `Passwordless Phone : ${m.value ?? identifier}`;
                   } else {
-                    label = "Enterprise SSO";
+                    label = `Enterprise SSO : ${m.connection}`;
                   }
 
                   let onClick: () => void;
@@ -238,13 +235,7 @@ export default function App() {
                   } else if (m.type === "enterprise") {
                     onClick = () => void chooseEnterprise(m.connection);
                   } else {
-                    onClick = () =>
-                      void choosePasswordless(
-                        m as Extract<
-                          Method,
-                          { type: "passwordless_email" | "passwordless_phone" }
-                        >
-                      );
+                    onClick = () => void choosePasswordless(m);
                   }
 
                   return (
