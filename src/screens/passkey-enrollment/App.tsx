@@ -18,6 +18,7 @@ const PasskeyEnrollmentScreen: React.FC = () => {
       await passkeyEnrollment.continuePasskeyEnrollment();
       setSuccess(true);
     } catch (err) {
+      console.error("Passkey enrollment error:", err);
       setError("Failed to enroll passkey. Please try again.");
     }
   };
@@ -30,7 +31,7 @@ const PasskeyEnrollmentScreen: React.FC = () => {
     try {
       await passkeyEnrollment.abortPasskeyEnrollment({ doNotShowAgain });
       setAborted(true);
-    } catch (err) {
+    } catch {
       setError("Failed to abort enrollment. Please try again.");
     }
   };

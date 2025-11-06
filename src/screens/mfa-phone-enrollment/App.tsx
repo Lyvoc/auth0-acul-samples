@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { MfaPhoneEnrollment as screenManager } from "@auth0/auth0-acul-js";
+import { MfaPhoneEnrollment } from "@auth0/auth0-acul-js";
 
 // UI Components
 import Button from "../../components/Button";
@@ -16,7 +16,7 @@ import {
 import { useState } from "react";
 
 export default function App() {
-  const screenManager = new screenManager();
+  const screenManager = new MfaPhoneEnrollment();
   console.log("screenManager: ", screenManager);
   const [type, setType] = useState("");
 
@@ -70,7 +70,7 @@ export default function App() {
     identifierDefaultValue =
       screenManager.untrustedData.submittedFormData.username;
   }
-  let phoneNumber = screenManager.screen.data?.phoneNumber;
+  const phoneNumber = screenManager.screen.data?.phoneNumber;
   console.log("Phone number for challenge:", phoneNumber);
   return (
     <div className="app-container">

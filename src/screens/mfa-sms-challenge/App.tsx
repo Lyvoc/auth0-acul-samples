@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { MfaSmsChallenge as screenManager } from "@auth0/auth0-acul-js";
+import { MfaSmsChallenge } from "@auth0/auth0-acul-js";
 
 // UI Components
 import Button from "../../components/Button";
@@ -16,7 +16,7 @@ import {
 // import { useState } from "react";
 
 export default function App() {
-  const screenManager = new screenManager();
+  const screenManager = new MfaSmsChallenge();
   console.log("screenManager: ", screenManager);
   // const [type, setType] = useState("");
 

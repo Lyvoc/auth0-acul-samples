@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, /*useEffect,*/ useMemo, useState } from "react";
 import { LoginId } from "@auth0/auth0-acul-js";
 
 // UI Components
@@ -24,8 +24,8 @@ export default function App() {
   const screenManager = useMemo(() => new LoginId(), []);
 
   // passkey UI (unchanged)
-  const [passkeySupported, setPasskeySupported] = useState(false);
-  const [conditionalMediation, setConditionalMediation] = useState(false);
+  // const [passkeySupported, setPasskeySupported] = useState(false);
+  // const [conditionalMediation, setConditionalMediation] = useState(false);
 
   // new state for dynamic methods
   const [identifier, setIdentifier] = useState("");
@@ -87,7 +87,7 @@ export default function App() {
       screenManager.untrustedData.submittedFormData.username;
   }
 
-  const showPasskeyHint = passkeySupported && conditionalMediation;
+  // const showPasskeyHint = passkeySupported && conditionalMediation;
 
   // Submit: call external API to fetch available methods
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
@@ -171,7 +171,7 @@ export default function App() {
               autoComplete="username webauthn"
               inputMode="email"
             />
-            {showPasskeyHint && (
+            {/* {showPasskeyHint && (
               <button
                 type="button"
                 className="form-text mt-2 underline cursor-pointer text-left"
@@ -180,7 +180,7 @@ export default function App() {
               >
                 Passkey available on this device ✨ — Click to use
               </button>
-            )}
+            )} */}
           </div>
 
           {/* Primary submit triggers the methods lookup */}

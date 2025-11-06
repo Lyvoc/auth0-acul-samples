@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { SignupId as screenManager } from "@auth0/auth0-acul-js";
+import { SignupId as SignupIdScreenManager } from "@auth0/auth0-acul-js";
 
 // UI Components (shadcn)
 import Button from "../../components/Button";
@@ -15,7 +15,7 @@ import {
 } from "../../components/Card";
 
 export default function SignupId() {
-  const screenManager = useMemo(() => new screenManager(), []);
+  const screenManager = useMemo(() => new SignupIdScreenManager(), []);
 
   const [prefilled, setPrefilled] = useState<string>("");
 
@@ -68,10 +68,24 @@ export default function SignupId() {
       await screenManager.signup(payload);
       // ACUL will advance the flow (to Signup Password, passkey, etc.)
     } catch (err) {
-      const errs =
-        (screenManager as any)?.transaction?.getErrors?.() ??
-        (screenManager as any)?.transaction?.errors ??
-        [];
+      // Use 'unknown' and type guard to avoid 'any'
+      const transaction = (screenManager as { transaction?: unknown })
+        .transaction;
+      let errs: { message?: string }[] = [];
+      if (transaction && typeof transaction === "object") {
+        if (
+          typeof (transaction as { getErrors?: unknown }).getErrors ===
+          "function"
+        ) {
+          errs = (
+            transaction as { getErrors: () => { message?: string }[] }
+          ).getErrors();
+        } else if (
+          Array.isArray((transaction as { errors?: unknown }).errors)
+        ) {
+          errs = (transaction as { errors: { message?: string }[] }).errors;
+        }
+      }
       const msg = errs[0]?.message || "Signup failed. Please try again.";
       console.error(err);
       alert(msg);
