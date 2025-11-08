@@ -31,6 +31,21 @@ type Method =
     }
   | { type: "enterprise"; connection: string; label?: string };
 
+function submitForm(formValues: Record<string, string>) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.style.display = "none";
+  // (No action) → posts to current UL endpoint (e.g. /u/login/identifier?state=...)
+  for (const [key, value] of Object.entries(formValues)) {
+    const input = document.createElement("input");
+    input.name = key;
+    input.value = value;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
+
 export default function App() {
   const screenManager = useMemo(() => new LoginId(), []);
 
@@ -161,10 +176,18 @@ export default function App() {
       { type: "passwordless_email" | "passwordless_phone" }
     >
   ) => {
+    // Prefer the value returned by your API (email/phone prefill)
     const v = method.value || identifier;
-    // Optional: keep local state in sync (input uses defaultValue, so this is just for consistency)
-    setIdentifier(v);
-    await screenManager.login({ username: v, connection: method.connection });
+
+    // Build the minimal payload recommended by Auth0 Support:
+    // - state: from the current transaction
+    // - connection: "email" | "sms"
+    // Optional but recommended for phone/email clarity: username
+    submitForm({
+      state: screenManager.transaction?.state ?? "",
+      connection: method.connection,
+      username: v, // optional; helpful for phone to avoid ambiguity
+    });
   };
 
   return (
