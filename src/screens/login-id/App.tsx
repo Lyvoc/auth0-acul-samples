@@ -14,7 +14,6 @@ import {
   CardContent,
 } from "../../components/Card";
 
-// Updated Method type to match lean payload (passwordless methods carry a `value`)
 type Method =
   | { type: "password"; label?: string }
   | {
@@ -30,21 +29,6 @@ type Method =
       label?: string;
     }
   | { type: "enterprise"; connection: string; label?: string };
-
-function submitForm(formValues: Record<string, string>) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.style.display = "none";
-  // (No action) → posts to current UL endpoint (e.g. /u/login/identifier?state=...)
-  for (const [key, value] of Object.entries(formValues)) {
-    const input = document.createElement("input");
-    input.name = key;
-    input.value = value;
-    form.appendChild(input);
-  }
-  document.body.appendChild(form);
-  form.submit();
-}
 
 export default function App() {
   const screenManager = useMemo(() => new LoginId(), []);
@@ -146,7 +130,6 @@ export default function App() {
         throw new Error(`Methods API responded ${res.status}`);
       }
 
-      // Expecting lean payload: { methods: Method[] }
       const payload = (await res.json()) as {
         methods: Method[];
       };
@@ -170,24 +153,24 @@ export default function App() {
     });
   };
 
+  // IMPORTANT: per Support/Norbert, switching to passwordless must be done on the *login-password* screen.
+  // Here we only store the intent and advance with login({ username }).
   const choosePasswordless = async (
     method: Extract<
       Method,
       { type: "passwordless_email" | "passwordless_phone" }
     >
   ) => {
-    // Prefer the value returned by your API (email/phone prefill)
     const v = method.value || identifier;
 
-    // Build the minimal payload recommended by Auth0 Support:
-    // - state: from the current transaction
-    // - connection: "email" | "sms"
-    // Optional but recommended for phone/email clarity: username
-    submitForm({
-      state: screenManager.transaction?.state ?? "",
-      connection: method.connection,
-      username: v, // optional; helpful for phone to avoid ambiguity
-    });
+    // Persist intent for the next screen
+    sessionStorage.setItem(
+      "acul_switch_to",
+      JSON.stringify({ connection: method.connection, username: v })
+    );
+
+    // Advance to login-password by submitting the identifier
+    await screenManager.login({ username: v });
   };
 
   return (

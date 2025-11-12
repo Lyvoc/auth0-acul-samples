@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect } from "react";
 import { LoginPassword as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
@@ -13,6 +13,23 @@ import {
   CardDescription,
   CardContent,
 } from "../../components/Card";
+
+function submitForm(formValues: Record<string, string>) {
+  // Hidden form POST back to the current UL endpoint (per Support guidance)
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.style.display = "none";
+
+  for (const [key, value] of Object.entries(formValues)) {
+    const input = document.createElement("input");
+    input.name = key;
+    input.value = value;
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+}
 
 export default function App() {
   const screenProvider = new ScreenProvider();
@@ -53,6 +70,31 @@ export default function App() {
   };
 
   const identifier = screenProvider.screen.data?.username ?? "";
+
+  // Auto-switch: if login-id stored intent (connection + username), post it here
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("acul_switch_to");
+      if (!raw) return;
+
+      const { connection, username } = JSON.parse(raw) as {
+        connection: string;
+        username?: string;
+      };
+
+      // Clear the intent to avoid loops
+      sessionStorage.removeItem("acul_switch_to");
+
+      // Post to UL with state + connection (+ username if provided)
+      submitForm({
+        state: screenProvider.transaction?.state ?? "",
+        connection,
+        ...(username ? { username } : {}),
+      });
+    } catch (e) {
+      console.warn("Switch intent not available or invalid", e);
+    }
+  }, [screenProvider.transaction?.state]);
 
   return (
     <div className="app-container">
@@ -112,6 +154,36 @@ export default function App() {
               {texts.forgotPasswordText}
             </Link>
           </Text>
+
+          {/* Optional: visible switch actions from here, if you want manual controls too */}
+          {/* <div className="mt-6 grid gap-2">
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() =>
+                submitForm({
+                  state: screenProvider.transaction?.state ?? "",
+                  connection: "email",
+                  username: identifier,
+                })
+              }
+            >
+              Switch to Passwordless Email
+            </Button>
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() =>
+                submitForm({
+                  state: screenProvider.transaction?.state ?? "",
+                  connection: "sms",
+                  username: identifier,
+                })
+              }
+            >
+              Switch to Passwordless SMS
+            </Button>
+          </div> */}
         </CardContent>
       </form>
     </div>
