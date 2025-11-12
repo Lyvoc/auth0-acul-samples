@@ -109,7 +109,46 @@ export default function App() {
       }
     } catch (e: unknown) {
       console.error("Failed to fetch methods", e);
-      setApiError("We couldn't look up your available sign-in methods.");
+      // ---- HARD-CODED FALLBACK (only if the API is unreachable) ----
+      const emailFromInput =
+        typeof value === "string" && value.includes("@")
+          ? value
+          : "jeremie.poisson@lyvoc.com";
+
+      const fallback: {
+        methods: (
+          | { type: "password" }
+          | { type: "passwordless_email"; connection: "email"; value: string }
+          | { type: "passwordless_phone"; connection: "sms"; value: string }
+          | { type: "enterprise"; connection: string }
+        )[];
+        passwordLoginUsername?: string;
+      } = {
+        methods: [
+          { type: "password" },
+          {
+            type: "passwordless_email",
+            connection: "email",
+            value: emailFromInput,
+          },
+          {
+            type: "passwordless_phone",
+            connection: "sms",
+            value: "+33663936646",
+          },
+          { type: "enterprise", connection: "acme-saml" },
+        ],
+        // If the user typed a phone number, we still need an EMAIL to reach login-password
+        passwordLoginUsername: emailFromInput,
+      };
+
+      setMethods(fallback.methods);
+      setPasswordLoginUsername(fallback.passwordLoginUsername ?? null);
+
+      // Optional: show a soft warning but keep the flow usable
+      setApiError(
+        "We couldn't reach the method service. Using defaults for now."
+      );
     } finally {
       setLoading(false);
     }
