@@ -144,17 +144,17 @@ export default function App() {
   };
 
   const choosePassword = async () => {
-    await screenManager.login({ username: identifier });
+    console.log("Password button for", identifier);
+    screenManager.login({ username: identifier });
   };
 
   const chooseEnterprise = async (connection: string) => {
+    console.log("Enterprise button for", connection);
     screenManager.federatedLogin({
       connection: connection,
     });
   };
 
-  // IMPORTANT: per Support/Norbert, switching to passwordless must be done on the *login-password* screen.
-  // Here we only store the intent and advance with login({ username }).
   const choosePasswordless = async (
     method: Extract<
       Method,
@@ -170,7 +170,8 @@ export default function App() {
     );
 
     // Advance to login-password by submitting the identifier
-    await screenManager.login({ username: v });
+    console.log("Passwordless button for", v);
+    screenManager.login({ username: v });
   };
 
   return (
