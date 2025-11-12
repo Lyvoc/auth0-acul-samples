@@ -14,65 +14,43 @@ import {
   CardContent,
 } from "../../components/Card";
 
+// Lean payload from your API
 type Method =
   | { type: "password"; label?: string }
   | {
       type: "passwordless_email";
-      connection: string;
+      connection: "email";
       value: string;
       label?: string;
     }
   | {
       type: "passwordless_phone";
-      connection: string;
+      connection: "sms";
       value: string;
       label?: string;
     }
   | { type: "enterprise"; connection: string; label?: string };
 
+type MethodsPayload = {
+  methods: Method[];
+  // Optional: if identifier is a phone but we must reach login-password with an email,
+  // let the API give us a canonical email to use for login({ username })
+  passwordLoginUsername?: string;
+};
+
 export default function App() {
   const screenManager = useMemo(() => new LoginId(), []);
 
-  // passkey UI (unchanged)
   // const [passkeySupported, setPasskeySupported] = useState(false);
   // const [conditionalMediation, setConditionalMediation] = useState(false);
 
-  // new state for dynamic methods
   const [identifier, setIdentifier] = useState("");
   const [methods, setMethods] = useState<Method[] | null>(null);
+  const [passwordLoginUsername, setPasswordLoginUsername] = useState<
+    string | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-
-  // useEffect(() => {
-  //   screenManager
-  //     .registerPasskeyAutofill("username")
-  //     .catch((error: unknown) => {
-  //       console.warn("Failed to register passkey autofill", { error });
-  //     });
-  // }, [screenManager]);
-
-  // useEffect(() => {
-  //   const checkSupport = async () => {
-  //     try {
-  //       const hasPlatform =
-  //         typeof PublicKeyCredential !== "undefined" &&
-  //         (await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable?.()) ===
-  //           true;
-
-  //       const hasConditional =
-  //         typeof PublicKeyCredential !== "undefined" &&
-  //         (await PublicKeyCredential.isConditionalMediationAvailable?.()) ===
-  //           true;
-
-  //       setPasskeySupported(Boolean(hasPlatform));
-  //       setConditionalMediation(Boolean(hasConditional));
-  //     } catch {
-  //       setPasskeySupported(false);
-  //       setConditionalMediation(false);
-  //     }
-  //   };
-  //   void checkSupport();
-  // }, []);
 
   const texts = {
     title: screenManager.screen.texts?.title ?? "Welcome",
@@ -86,7 +64,7 @@ export default function App() {
       screenManager.screen.texts?.footerLinkText ?? "Create your account",
   };
 
-  // prefill identifier from context/untrustedData
+  // Prefill identifier from context/untrustedData
   let identifierDefaultValue = "";
   if (typeof screenManager.screen.data?.username === "string") {
     identifierDefaultValue = screenManager.screen.data.username;
@@ -97,44 +75,38 @@ export default function App() {
       screenManager.untrustedData.submittedFormData.username;
   }
 
-  // const showPasskeyHint = passkeySupported && conditionalMediation;
-
-  // Submit: call external API to fetch available methods
+  // Continue → fetch available methods
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
     setApiError(null);
     setLoading(true);
     setMethods(null);
+    setPasswordLoginUsername(null);
 
     const input = event.target.querySelector(
       "input#identifier"
     ) as HTMLInputElement;
-    const value = input?.value?.trim() || "";
+    const value = (input?.value ?? "").trim();
     setIdentifier(value);
 
     try {
-      // NOTE: your Okta Workflows endpoint here
       const res = await fetch(
+        // TODO: replace with your Okta Workflows endpoint
         "https://test-api.free.beeceptor.com/check-methods",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            identifier: value,
-          }),
+          body: JSON.stringify({ identifier: value }),
           credentials: "omit",
         }
       );
+      if (!res.ok) throw new Error(`Methods API responded ${res.status}`);
 
-      if (!res.ok) {
-        throw new Error(`Methods API responded ${res.status}`);
-      }
-
-      const payload = (await res.json()) as {
-        methods: Method[];
-      };
-
+      const payload = (await res.json()) as MethodsPayload;
       setMethods(payload.methods || []);
+      if (payload.passwordLoginUsername) {
+        setPasswordLoginUsername(payload.passwordLoginUsername);
+      }
     } catch (e: unknown) {
       console.error("Failed to fetch methods", e);
       setApiError("We couldn't look up your available sign-in methods.");
@@ -143,36 +115,48 @@ export default function App() {
     }
   };
 
+  const toLoginPassword = async (username: string) => {
+    await screenManager.login({ username }); // moves to login-password
+  };
+
   const choosePassword = async () => {
-    console.log("Password button for", identifier);
-    screenManager.login({ username: identifier });
+    await toLoginPassword(identifier);
   };
 
   const chooseEnterprise = async (connection: string) => {
-    console.log("Enterprise button for", connection);
-    screenManager.federatedLogin({
-      connection: connection,
-    });
+    screenManager.federatedLogin({ connection });
   };
 
-  const choosePasswordless = async (
-    method: Extract<
-      Method,
-      { type: "passwordless_email" | "passwordless_phone" }
-    >
-  ) => {
-    const v = method.value || identifier;
-
-    // Persist intent for the next screen
+  // Store intent then advance with an email username
+  const choosePasswordlessEmail = async (email: string) => {
     sessionStorage.setItem(
       "acul_switch_to",
-      JSON.stringify({ connection: method.connection, username: v })
+      JSON.stringify({ connection: "email", username: email })
     );
-
-    // Advance to login-password by submitting the identifier
-    console.log("Passwordless button for", v);
-    screenManager.login({ username: v });
+    await toLoginPassword(email);
   };
+
+  const choosePasswordlessSms = async (phone: string) => {
+    // Must reach login-password with an EMAIL username
+    const emailToReachPassword = identifier.includes("@")
+      ? identifier
+      : passwordLoginUsername || "";
+
+    if (!emailToReachPassword) {
+      console.warn(
+        "Missing email to reach login-password; have your API return passwordLoginUsername or prompt for an email."
+      );
+      return;
+    }
+
+    sessionStorage.setItem(
+      "acul_switch_to",
+      JSON.stringify({ connection: "sms", username: phone })
+    );
+    await toLoginPassword(emailToReachPassword);
+  };
+
+  const methodsVisible = !!methods;
 
   return (
     <div className="app-container">
@@ -194,56 +178,49 @@ export default function App() {
               defaultValue={identifierDefaultValue}
               placeholder="john@example.com or +15551234567"
               autoFocus
-              className="form-input"
+              className={`form-input ${
+                methodsVisible ? "opacity-60 pointer-events-none" : ""
+              }`}
               autoComplete="username webauthn"
               inputMode="email"
+              disabled={methodsVisible} // greyed when methods shown
             />
-            {/* {showPasskeyHint && (
-              <button
-                type="button"
-                className="form-text mt-2 underline cursor-pointer text-left"
-                onClick={() => screenManager.passkeyLogin()}
-                aria-live="polite"
-              >
-                Passkey available on this device ✨ — Click to use
-              </button>
-            )} */}
           </div>
 
-          {/* Primary submit triggers the methods lookup */}
-          <Button type="submit" className="form-button" disabled={loading}>
-            {loading ? "Checking…" : texts.buttonText}
-          </Button>
+          {/* Hide Continue when methods are visible */}
+          {!methodsVisible && (
+            <Button type="submit" className="form-button" disabled={loading}>
+              {loading ? "Checking…" : texts.buttonText}
+            </Button>
+          )}
 
-          {/* Step 2: Show available methods */}
           {apiError && (
             <Text className="form-text mt-4 text-red-600">{apiError}</Text>
           )}
 
-          {methods && (
+          {/* Step 2: Show available methods */}
+          {methodsVisible && methods && (
             <div className="mt-6">
               <Text className="form-text mb-2">Choose a sign-in method:</Text>
               <div className="grid gap-2">
                 {methods.map((m, idx) => {
-                  let label: string;
-                  if (m.type === "password") {
-                    label = "Password";
-                  } else if (m.type === "passwordless_email") {
-                    label = `Passwordless Email : ${m.value ?? identifier}`;
-                  } else if (m.type === "passwordless_phone") {
-                    label = `Passwordless Phone : ${m.value ?? identifier}`;
-                  } else {
-                    label = `Enterprise SSO : ${m.connection}`;
-                  }
+                  const label =
+                    m.type === "password"
+                      ? "Password"
+                      : m.type === "passwordless_email"
+                      ? `Passwordless Email : ${m.value}`
+                      : m.type === "passwordless_phone"
+                      ? `Passwordless Phone : ${m.value}`
+                      : `Enterprise SSO : ${m.connection}`;
 
-                  let onClick: () => void;
-                  if (m.type === "password") {
-                    onClick = () => void choosePassword();
-                  } else if (m.type === "enterprise") {
-                    onClick = () => void chooseEnterprise(m.connection);
-                  } else {
-                    onClick = () => void choosePasswordless(m);
-                  }
+                  const onClick =
+                    m.type === "password"
+                      ? () => void choosePassword()
+                      : m.type === "enterprise"
+                      ? () => void chooseEnterprise(m.connection)
+                      : m.type === "passwordless_email"
+                      ? () => void choosePasswordlessEmail(m.value)
+                      : () => void choosePasswordlessSms(m.value);
 
                   return (
                     <Button

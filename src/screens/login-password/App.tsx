@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { LoginPassword as ScreenProvider } from "@auth0/auth0-acul-js";
 
 // UI Components
@@ -14,26 +14,33 @@ import {
   CardContent,
 } from "../../components/Card";
 
+// Hidden form POST (per Support)
 function submitForm(formValues: Record<string, string>) {
-  // Hidden form POST back to the current UL endpoint (per Support guidance)
   const form = document.createElement("form");
   form.method = "POST";
   form.style.display = "none";
-
   for (const [key, value] of Object.entries(formValues)) {
     const input = document.createElement("input");
     input.name = key;
     input.value = value;
     form.appendChild(input);
   }
-
   document.body.appendChild(form);
   form.submit();
 }
 
 export default function App() {
-  const screenProvider = new ScreenProvider();
-  console.log("screenProvider: ", screenProvider);
+  const screenProvider = useMemo(() => new ScreenProvider(), []);
+
+  // compute at first paint to hide the whole screen if switching
+  const initialSwitch = (() => {
+    try {
+      return !!sessionStorage.getItem("acul_switch_to");
+    } catch {
+      return false;
+    }
+  })();
+  const [isSwitching, setIsSwitching] = useState<boolean>(initialSwitch);
 
   const texts = {
     title: screenProvider.screen.texts?.title ?? "Enter Your Password",
@@ -71,33 +78,40 @@ export default function App() {
 
   const identifier = screenProvider.screen.data?.username ?? "";
 
-  // Auto-switch: if login-id stored intent (connection + username), post it here
+  // Auto-switch if intent exists. Clear BEFORE submit and keep hidden while switching.
   useEffect(() => {
+    if (!isSwitching) return;
+
     try {
       const raw = sessionStorage.getItem("acul_switch_to");
-      if (!raw) return;
-
+      if (!raw) {
+        setIsSwitching(false);
+        return;
+      }
       const { connection, username } = JSON.parse(raw) as {
-        connection: string;
-        username?: string;
+        connection: "email" | "sms";
+        username: string;
       };
 
-      // Clear the intent to avoid loops
+      // clear first to avoid loops even on reloads
       sessionStorage.removeItem("acul_switch_to");
 
-      // Post to UL with state + connection (+ username if provided)
       submitForm({
         state: screenProvider.transaction?.state ?? "",
         connection,
-        ...(username ? { username } : {}),
+        username, // phone for sms, email for email
       });
     } catch (e) {
       console.warn("Switch intent not available or invalid", e);
+      setIsSwitching(false);
     }
-  }, [screenProvider.transaction?.state]);
+  }, [isSwitching, screenProvider.transaction?.state]);
 
   return (
-    <div className="app-container">
+    <div
+      className="app-container"
+      style={{ display: isSwitching ? "none" : undefined }}
+    >
       <form noValidate onSubmit={formSubmitHandler} className="card">
         <div className="test-css-inclusion" style={{ display: "none" }}>
           CSS Keepalive
@@ -154,36 +168,6 @@ export default function App() {
               {texts.forgotPasswordText}
             </Link>
           </Text>
-
-          {/* Optional: visible switch actions from here, if you want manual controls too */}
-          {/* <div className="mt-6 grid gap-2">
-            <Button
-              type="button"
-              className="w-full"
-              onClick={() =>
-                submitForm({
-                  state: screenProvider.transaction?.state ?? "",
-                  connection: "email",
-                  username: identifier,
-                })
-              }
-            >
-              Switch to Passwordless Email
-            </Button>
-            <Button
-              type="button"
-              className="w-full"
-              onClick={() =>
-                submitForm({
-                  state: screenProvider.transaction?.state ?? "",
-                  connection: "sms",
-                  username: identifier,
-                })
-              }
-            >
-              Switch to Passwordless SMS
-            </Button>
-          </div> */}
         </CardContent>
       </form>
     </div>
