@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, ChangeEvent } from "react";
+import { useMemo, useState, useEffect, ChangeEvent } from "react";
 import LoginPasswordlessEmailCode from "@auth0/auth0-acul-js/login-passwordless-email-code";
 
 // UI Components
