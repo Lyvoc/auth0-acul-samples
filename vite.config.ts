@@ -13,7 +13,7 @@ const screens = [
   "passkey-enrollment",
   "passkey-enrollment-local",
   "login-passwordless-email-code",
-  "login-passwordless-sms-code",
+  "login-passwordless-sms-otp",
 ];
 
 // Generate input object for all screens
