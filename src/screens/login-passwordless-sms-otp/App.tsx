@@ -45,36 +45,30 @@ export default function App() {
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem("acul_switch_to");
+      const raw = sessionStorage.getItem("acul_switch_prefill");
       if (raw) {
         const { connection, username: u } = JSON.parse(raw) as {
           connection: "email" | "sms";
           username: string;
         };
-        if (connection === "sms" && typeof u === "string") {
-          setUsername(u);
-        }
+        if (connection === "sms" && typeof u === "string") setUsername(u);
+        sessionStorage.removeItem("acul_switch_prefill"); // clear after read
       }
     } catch {
-      // Intentionally ignore errors from sessionStorage parsing
+      // ignore JSON parse errors
     }
-    // Fallback to ACUL screen data if provided
     const fromCtx = smsOtp?.screen?.data?.username;
-    if (typeof fromCtx === "string") {
-      setUsername((v) => v || fromCtx);
-    }
-  }, [smsOtp]);
+    if (!username && typeof fromCtx === "string") setUsername(fromCtx);
+  }, [smsOtp, username]);
 
   const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
-
     if (!username || !otp) {
       setError("Username and OTP are required.");
       return;
     }
-
     try {
       await smsOtp.submitOTP({ username, code: otp });
       setSuccess(true);
@@ -128,6 +122,18 @@ export default function App() {
               className="form-input"
               placeholder="+15551234567"
             />
+
+            <Button
+              type="button"
+              className="flex-1"
+              onClick={() => {
+                const href = smsOtp?.screen?.backLink;
+                if (href) globalThis.location.href = href;
+                else history.back();
+              }}
+            >
+              ← Back to sign-in options
+            </Button>
           </div>
 
           <div className="form-group">

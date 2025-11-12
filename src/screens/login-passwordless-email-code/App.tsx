@@ -25,20 +25,19 @@ export default function App() {
 
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem("acul_switch_to");
+      const raw = sessionStorage.getItem("acul_switch_prefill");
       if (raw) {
         const { connection, username } = JSON.parse(raw) as {
           connection: "email" | "sms";
           username: string;
         };
-        if (connection === "email" && username?.includes("@")) {
+        if (connection === "email" && username?.includes("@"))
           setEmail(username);
-        }
+        sessionStorage.removeItem("acul_switch_prefill"); // clear here (after read)
       }
     } catch {
-      // Intentionally ignore errors from sessionStorage parsing
+      // ignore JSON parse errors
     }
-    // As a fallback, ACUL often provides username on this screen
     const fromCtx = emailCode?.screen?.data?.username;
     if (typeof fromCtx === "string" && fromCtx.includes("@")) {
       setEmail((v) => v || fromCtx);
@@ -111,6 +110,18 @@ export default function App() {
               onChange={(e) => setEmail(e.target.value)}
               className="form-input"
             />
+
+            <Button
+              type="button"
+              className="w-full mt-4"
+              onClick={() => {
+                const href = emailCode?.screen?.editIdentifierLink;
+                if (href) globalThis.location.href = href;
+                else history.back();
+              }}
+            >
+              ← Back to sign-in options
+            </Button>
           </div>
 
           <div className="form-group">

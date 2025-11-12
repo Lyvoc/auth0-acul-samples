@@ -81,20 +81,21 @@ export default function App() {
   // Auto-switch if intent exists. Clear BEFORE submit and keep hidden while switching.
   useEffect(() => {
     if (!isSwitching) return;
-
     try {
       const raw = sessionStorage.getItem("acul_switch_to");
       if (!raw) {
         setIsSwitching(false);
         return;
       }
+
+      // Copy to a prefill key for the next page, then clear the trigger key
+      sessionStorage.setItem("acul_switch_prefill", raw);
+      sessionStorage.removeItem("acul_switch_to");
+
       const { connection, username } = JSON.parse(raw) as {
         connection: "email" | "sms";
         username: string;
       };
-
-      // clear first to avoid loops even on reloads
-      sessionStorage.removeItem("acul_switch_to");
 
       submitForm({
         state: screenProvider.transaction?.state ?? "",
@@ -128,13 +129,19 @@ export default function App() {
           <Text className="form-text mb-4">
             <span className="inline-block">Log in as </span>
             <span className="inline-block ml-1 font-bold">{identifier}</span>
-            <Link
-              className="form-link ml-2"
-              href={screenProvider.screen.editIdentifierLink ?? "#"}
-            >
-              {texts.editEmailText}
-            </Link>
           </Text>
+
+          <Button
+            type="button"
+            className="w-full mt-4"
+            onClick={() => {
+              const href = screenProvider?.screen?.editIdentifierLink;
+              if (href) globalThis.location.href = href;
+              else history.back();
+            }}
+          >
+            ← Back to sign-in options
+          </Button>
 
           <Input
             type="hidden"
