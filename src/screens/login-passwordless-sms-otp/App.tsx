@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState, ChangeEvent } from "react";
 import LoginPasswordlessSmsOtp from "@auth0/auth0-acul-js/login-passwordless-sms-otp";
 
+// UI Components
 import Button from "../../components/Button";
 import { Label } from "../../components/Label";
 import { Input } from "../../components/Input";
@@ -13,28 +14,33 @@ import {
 } from "../../components/Card";
 
 export default function App() {
-  const sms = useMemo(() => new LoginPasswordlessSmsOtp(), []);
+  const smsOtp = useMemo(() => new LoginPasswordlessSmsOtp(), []);
 
-  const identifier = sms.screen?.data?.username ?? "";
+  const identifier = smsOtp.screen?.data?.username ?? "";
   console.log("[SMS-OTP] identifier from screen =", identifier);
 
   const [username, setUsername] = useState(identifier);
   const [otp, setOtp] = useState("");
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    console.log("[SMS-OTP] submitOTP()", { username, otp });
+    setSuccess(false);
+
+    if (!username || !otp) {
+      setError("Phone and OTP are required.");
+      return;
+    }
 
     try {
-      await sms.submitOTP({ username, code: otp });
+      console.log("[SMS-OTP] submitOTP", { username, otp });
+      await smsOtp.submitOTP({ username, code: otp });
       setSuccess(true);
     } catch (err) {
       console.error("[SMS-OTP] submitOTP failed", err);
-      setError("Invalid OTP.");
+      setError("Invalid OTP. Please try again.");
     }
   };
 
@@ -42,44 +48,74 @@ export default function App() {
     setError("");
     setSuccess(false);
     try {
-      await sms.resendOTP();
+      console.log("[SMS-OTP] startResend");
+      await smsOtp.resendOTP();
     } catch (err) {
-      console.error("Code resend error:", err);
-      setError("Failed to resend code. Please try again later.");
+      console.error("[SMS-OTP] startResend failed", err);
+      setError("Failed to resend OTP. Please try again later.");
     }
   };
 
   return (
     <div className="app-container">
       <form noValidate onSubmit={handleSubmit} className="card">
-        <CardHeader>
-          <CardTitle>Enter SMS Code</CardTitle>
-          <CardDescription>We sent a code to your phone number</CardDescription>
+        <CardHeader className="card-header">
+          <CardTitle>Continue with SMS OTP</CardTitle>
+          <CardDescription>
+            Enter the code we sent to your phone.
+          </CardDescription>
         </CardHeader>
 
-        <CardContent>
-          <Label htmlFor="username">Phone</Label>
-          <Input
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+        <CardContent className="card-content">
+          <div className="form-group">
+            <Label htmlFor="username" className="form-label">
+              Phone
+            </Label>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="form-input"
+              placeholder="+15551234567"
+            />
+          </div>
 
-          <Label htmlFor="otp">One-time code</Label>
-          <Input
-            id="otp"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            inputMode="numeric"
-            placeholder="123456"
-          />
+          <div className="form-group">
+            <Label htmlFor="otp" className="form-label">
+              One-time code
+            </Label>
+            <Input
+              id="otp"
+              name="otp"
+              type="text"
+              required
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="form-input"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={8}
+              placeholder="123456"
+            />
+          </div>
 
-          {error && <Text className="text-red-600">{error}</Text>}
-          {success && <Text className="text-green-600">Login successful!</Text>}
+          {error && (
+            <Text className="form-text mt-2 text-red-600">{error}</Text>
+          )}
+          {success && (
+            <Text className="form-text mt-2 text-green-600">
+              Login successful!
+            </Text>
+          )}
 
-          <div className="flex gap-2 mt-4">
-            <Button type="submit">Continue</Button>
-            <Button type="button" onClick={handleResend}>
+          <div className="mt-4 flex gap-2">
+            <Button type="submit" className="flex-1">
+              Continue
+            </Button>
+            <Button type="button" className="flex-1" onClick={handleResend}>
               Resend Code
             </Button>
           </div>
@@ -87,9 +123,11 @@ export default function App() {
           <Button
             type="button"
             className="mt-6"
-            onClick={() =>
-              (window.location.href = sms.screen?.backLink ?? "/u/login")
-            }
+            onClick={() => {
+              const href = smsOtp.screen?.backLink;
+              if (href) globalThis.location.href = href;
+              else history.back();
+            }}
           >
             ← Back to sign-in options
           </Button>

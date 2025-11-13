@@ -6,6 +6,7 @@ import Button from "../../components/Button";
 import { Label } from "../../components/Label";
 import { Input } from "../../components/Input";
 import { Text } from "../../components/Text";
+import { Link } from "../../components/Link";
 import {
   CardHeader,
   CardTitle,
@@ -28,16 +29,22 @@ export default function App() {
   const [apiError, setApiError] = useState<string | null>(null);
 
   const texts = {
-    title: "Bienvenue",
-    description: "Connectez-vous pour continuer",
-    emailPlaceholder: "Adresse e-mail ou téléphone",
-    buttonText: "Continuer",
+    title: screenManager.screen.texts?.title ?? "Welcome",
+    description: screenManager.screen.texts?.description ?? "Login to continue",
+    emailPlaceholder:
+      screenManager.screen.texts?.emailPlaceholder ?? "Email or phone number",
+    buttonText: screenManager.screen.texts?.buttonText ?? "Continue",
+    footerText:
+      screenManager.screen.texts?.footerText ?? "Don't have an account yet?",
+    footerLinkText:
+      screenManager.screen.texts?.footerLinkText ?? "Create your account",
   };
 
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
     setApiError(null);
+    setMethods(null);
 
     const input = event.target.querySelector(
       "input#identifier"
@@ -45,7 +52,7 @@ export default function App() {
     const value = input?.value?.trim() ?? "";
 
     setIdentifier(value);
-    console.log("[LOGIN-ID] Entered identifier =", value);
+    console.log("[LOGIN-ID] Identifier entered =", value);
 
     try {
       const res = await fetch(
@@ -57,138 +64,161 @@ export default function App() {
         }
       );
 
-      if (!res.ok) throw new Error("API failed");
+      if (!res.ok) {
+        throw new Error(`Methods API responded ${res.status}`);
+      }
 
-      const { methods } = await res.json();
-      console.log("[LOGIN-ID] API methods payload =", methods);
+      const payload = (await res.json()) as {
+        identifier: string;
+        methods: Method[];
+      };
 
-      setMethods(methods || []);
-    } catch (err) {
-      console.error("[LOGIN-ID] fetch error:", err);
-      console.warn("[LOGIN-ID] API failed → using fallback methods");
-      setApiError("We couldn't reach method service. Using defaults.");
+      console.log("[LOGIN-ID] Methods payload =", payload);
+      setIdentifier(payload.identifier || value);
+      setMethods(payload.methods || []);
+    } catch (e) {
+      console.error("[LOGIN-ID] Failed to fetch methods", e);
+      setApiError(
+        "We couldn't look up your available sign-in methods. Using defaults."
+      );
 
-      setMethods([
+      // Fallback with your sample payload shape
+      const fallbackMethods: Method[] = [
         { type: "password" },
         {
           type: "passwordless_email",
           connection: "email",
-          value: "jeremie.poisson@lyvoc.com",
+          value: value.includes("@") ? value : "jeremie.poisson@lyvoc.com",
         },
         {
           type: "passwordless_phone",
           connection: "sms",
-          value: "+33663936646",
+          value: "+15551234567",
         },
-      ]);
+        { type: "enterprise", connection: "acme-saml" },
+      ];
+      setMethods(fallbackMethods);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const choosePassword = async (method: Method) => {
-    console.log("[LOGIN-ID] choosePassword", method, { identifier });
-    await screenManager.login({ username: identifier });
+  const choosePassword = async () => {
+    console.log("[LOGIN-ID] choosePassword", { identifier });
+    try {
+      await screenManager.login({ username: identifier });
+    } catch (e) {
+      console.error("[LOGIN-ID] login() for password failed", e);
+    }
   };
 
-  const chooseEnterprise = (m: Method) => {
-    console.log("[LOGIN-ID] chooseEnterprise", m);
-    if ("connection" in m) {
-      screenManager.federatedLogin({ connection: m.connection });
-    } else {
-      console.error("Method does not have a connection property:", m);
-    }
+  const chooseEnterprise = (connection: string) => {
+    console.log("[LOGIN-ID] chooseEnterprise", { connection });
+    screenManager.federatedLogin({ connection });
   };
 
   const choosePasswordless = async (
-    m: Extract<Method, { type: "passwordless_email" | "passwordless_phone" }>
+    method: Extract<
+      Method,
+      { type: "passwordless_email" | "passwordless_phone" }
+    >
   ) => {
-    console.log("[LOGIN-ID] choosePasswordless", m);
+    console.log("[LOGIN-ID] choosePasswordless", method);
 
-    // Replace the transaction username first
-    await screenManager.login({ username: m.value });
+    try {
+      // 1) Make the transaction username = the value from API (email or phone)
+      await screenManager.login({ username: method.value });
 
-    // Now switch connection
-    const state = screenManager.transaction?.state ?? "";
-    console.log("[LOGIN-ID] submitForm for passwordless", {
-      state,
-      connection: m.connection,
-      username: m.value,
-    });
-
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.style.display = "none";
-    form.action = "";
-
-    for (const [key, value] of Object.entries({
-      state,
-      connection: m.connection,
-    })) {
-      const i = document.createElement("input");
-      i.name = key;
-      i.value = value;
-      form.appendChild(i);
+      // 2) Store only the connection type so login-password can auto-switch
+      sessionStorage.setItem("acul_switch_connection", method.connection);
+    } catch (e) {
+      console.error("[LOGIN-ID] login() for passwordless failed", e);
     }
-
-    document.body.appendChild(form);
-    form.submit();
   };
 
   return (
     <div className="app-container">
       <form noValidate onSubmit={formSubmitHandler} className="card">
-        <CardHeader>
+        <CardHeader className="card-header">
           <CardTitle>{texts.title}</CardTitle>
           <CardDescription>{texts.description}</CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="card-content">
+          {/* Step 1: Identifier input */}
           <div className="form-group">
-            <Label htmlFor="identifier">{texts.emailPlaceholder}</Label>
+            <Label htmlFor="identifier" className="form-label">
+              {texts.emailPlaceholder}
+            </Label>
             <Input
               id="identifier"
               name="identifier"
-              placeholder="+33 6 12 34 56 78"
+              placeholder="john@example.com or +15551234567"
               autoFocus
+              className="form-input"
+              autoComplete="username"
+              inputMode="email"
             />
           </div>
 
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" className="form-button" disabled={loading}>
             {loading ? "Checking…" : texts.buttonText}
           </Button>
 
-          {apiError && <Text className="text-red-600">{apiError}</Text>}
-
-          {methods && (
-            <>
-              <Text className="mt-4 mb-2">Choose a sign-in method:</Text>
-
-              {methods.map((m, idx) => {
-                const label =
-                  m.type === "password"
-                    ? "Password"
-                    : m.type === "passwordless_email"
-                    ? `Passwordless Email : ${m.value}`
-                    : m.type === "passwordless_phone"
-                    ? `Passwordless Phone : ${m.value}`
-                    : `Enterprise SSO : ${m.connection}`;
-
-                const handler =
-                  m.type === "password"
-                    ? () => choosePassword(m)
-                    : m.type === "enterprise"
-                    ? () => chooseEnterprise(m)
-                    : () => choosePasswordless(m);
-
-                return (
-                  <Button key={idx} type="button" onClick={handler}>
-                    {label}
-                  </Button>
-                );
-              })}
-            </>
+          {apiError && (
+            <Text className="form-text mt-4 text-red-600">{apiError}</Text>
           )}
+
+          {/* Step 2: Show available methods */}
+          {methods && (
+            <div className="mt-6">
+              <Text className="form-text mb-2">Choose a sign-in method:</Text>
+              <div className="grid gap-2">
+                {methods.map((m, idx) => {
+                  let label: string;
+                  if (m.type === "password") {
+                    label = "Password";
+                  } else if (m.type === "passwordless_email") {
+                    label = `Passwordless Email : ${m.value}`;
+                  } else if (m.type === "passwordless_phone") {
+                    label = `Passwordless Phone : ${m.value}`;
+                  } else {
+                    label = `Enterprise SSO : ${m.connection}`;
+                  }
+
+                  let onClick: () => void;
+                  if (m.type === "password") {
+                    onClick = () => void choosePassword();
+                  } else if (m.type === "enterprise") {
+                    onClick = () => void chooseEnterprise(m.connection);
+                  } else {
+                    onClick = () => void choosePasswordless(m);
+                  }
+
+                  return (
+                    <Button
+                      key={`${m.type}-${idx}`}
+                      type="button"
+                      className="w-full justify-start"
+                      onClick={onClick}
+                    >
+                      {label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <Text className="form-text mt-6">
+            {texts.footerText}
+            <Link
+              href={screenManager.screen.signupLink ?? "#"}
+              className="form-link ml-1"
+            >
+              {texts.footerLinkText}
+            </Link>
+          </Text>
         </CardContent>
       </form>
     </div>
