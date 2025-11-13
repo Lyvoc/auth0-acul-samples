@@ -51,15 +51,23 @@ export default function App() {
           connection: "email" | "sms";
           username: string;
         };
-        if (connection === "sms" && typeof u === "string") setUsername(u);
-        sessionStorage.removeItem("acul_switch_prefill"); // clear after read
+        if (connection === "sms" && typeof u === "string" && u.trim()) {
+          setUsername(u);
+        }
+        sessionStorage.removeItem("acul_switch_prefill");
       }
     } catch {
-      // ignore JSON parse errors
+      /* ignore */
     }
-    const fromCtx = smsOtp?.screen?.data?.username;
-    if (!username && typeof fromCtx === "string") setUsername(fromCtx);
-  }, [smsOtp, username]);
+
+    if (!username) {
+      const fromCtx = smsOtp?.screen?.data?.username;
+      if (typeof fromCtx === "string" && fromCtx.trim()) {
+        setUsername(fromCtx);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [smsOtp]);
 
   const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
