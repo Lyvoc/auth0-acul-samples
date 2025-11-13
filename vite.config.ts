@@ -6,8 +6,6 @@ import { resolve } from "path";
 const screens = [
   "login-id",
   "login-password",
-  "signup-id",
-  "signup-password",
   "mfa-phone-enrollment",
   "mfa-sms-challenge",
   "passkey-enrollment",
