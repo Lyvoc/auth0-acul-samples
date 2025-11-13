@@ -24,6 +24,33 @@ export default function App() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  function goBackToLoginId(fallbackHref?: string) {
+    try {
+      const url = new URL(globalThis.location.href);
+      const state = url.searchParams.get("state");
+
+      if (state) {
+        const target = `${
+          url.origin
+        }/u/login/identifier?state=${encodeURIComponent(state)}`;
+        console.log("[BACK] Redirecting to login-id", target);
+        globalThis.location.href = target;
+        return;
+      }
+
+      console.log("[BACK] No state found in URL, using fallback/backLink");
+    } catch (e) {
+      console.warn("[BACK] Failed to parse URL, using fallback/backLink", e);
+    }
+
+    // Fallback: use backLink if provided, else history.back()
+    if (fallbackHref) {
+      globalThis.location.href = fallbackHref;
+    } else {
+      history.back();
+    }
+  }
+
   const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -124,9 +151,8 @@ export default function App() {
             type="button"
             className="mt-6"
             onClick={() => {
-              const href = smsOtp.screen?.backLink;
-              if (href) globalThis.location.href = href;
-              else history.back();
+              const href = smsOtp.screen?.backLink ?? undefined;
+              goBackToLoginId(href);
             }}
           >
             ← Back to sign-in options
