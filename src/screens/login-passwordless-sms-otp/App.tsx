@@ -22,36 +22,35 @@ export default function App() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const [resent, setResent] = useState(false);
+
   useEffect(() => {
+    let filled = false;
+
     try {
       const raw = sessionStorage.getItem("acul_switch_prefill");
-      console.log("[SMS OTP] acul_switch_prefill raw", raw);
-
       if (raw) {
         const parsed = JSON.parse(raw) as {
           connection: "email" | "sms";
           username: string;
         };
-        console.log("[SMS OTP] parsed switch_prefill", parsed);
+        console.log("[SMS OTP] using switch_prefill", parsed);
 
-        if (
-          parsed.connection === "sms" &&
-          typeof parsed.username === "string" &&
-          parsed.username.trim()
-        ) {
+        if (parsed.connection === "sms" && parsed.username.trim()) {
           setUsername(parsed.username);
+          filled = true;
         }
+
         sessionStorage.removeItem("acul_switch_prefill");
       }
     } catch (err) {
       console.warn("[SMS OTP] error reading switch_prefill", err);
     }
-
-    console.log(
-      "[SMS OTP] screen.data.username",
-      smsOtp?.screen?.data?.username
-    );
-  }, [smsOtp]);
+    if (!filled && !username) {
+      console.warn("[SMS OTP] No prefill available — forcing empty username");
+      setUsername("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
