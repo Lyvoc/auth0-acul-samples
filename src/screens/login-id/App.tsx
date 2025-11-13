@@ -166,12 +166,10 @@ export default function App() {
     screenManager.federatedLogin({ connection });
   };
 
-  // Store intent then advance with an email username
   const choosePasswordlessEmail = async (email: string) => {
-    sessionStorage.setItem(
-      "acul_switch_to",
-      JSON.stringify({ connection: "email", username: email })
-    );
+    const payload = { connection: "email" as const, username: email };
+    console.debug("[LOGIN-ID] choosePasswordlessEmail payload", payload);
+    sessionStorage.setItem("acul_switch_to", JSON.stringify(payload));
     await toLoginPassword(email);
   };
 
@@ -183,15 +181,18 @@ export default function App() {
 
     if (!emailToReachPassword) {
       console.warn(
-        "Missing email to reach login-password; have your API return passwordLoginUsername or prompt for an email."
+        "[LOGIN-ID] No emailToReachPassword available when choosing SMS",
+        { identifier, passwordLoginUsername }
       );
       return;
     }
 
-    sessionStorage.setItem(
-      "acul_switch_to",
-      JSON.stringify({ connection: "sms", username: phone })
-    );
+    const payload = { connection: "sms" as const, username: phone };
+    console.debug("[LOGIN-ID] choosePasswordlessSms payload", payload, {
+      emailToReachPassword,
+    });
+
+    sessionStorage.setItem("acul_switch_to", JSON.stringify(payload));
     await toLoginPassword(emailToReachPassword);
   };
 

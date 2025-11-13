@@ -21,51 +21,45 @@ export default function App() {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
-
-  // Resend manager state
-  const [disabled, setDisabled] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
-
-  // Build resend manager once
-  const resendManager = useMemo(
-    () =>
-      smsOtp.resendManager({
-        timeoutSeconds: 30, // adjust to your policy
-        onStatusChange: (secs, isDisabled) => {
-          setDisabled(isDisabled);
-          setRemainingSeconds(secs);
-        },
-        onTimeout: () => {
-          // Optional: you could toast “You can request a new code now.”
-        },
-      }),
-    [smsOtp]
-  );
-  const { startResend } = resendManager;
-
+  const [resent, setResent] = useState(false);
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("acul_switch_prefill");
+      console.debug("[SMS OTP] acul_switch_prefill raw", raw);
+
       if (raw) {
-        const { connection, username: u } = JSON.parse(raw) as {
+        const parsed = JSON.parse(raw) as {
           connection: "email" | "sms";
           username: string;
         };
-        if (connection === "sms" && typeof u === "string" && u.trim()) {
-          console.debug("[SMS OTP prefill]", { connection, u });
-          setUsername(u);
+        console.debug("[SMS OTP] parsed switch_prefill", parsed);
+
+        if (
+          parsed.connection === "sms" &&
+          typeof parsed.username === "string" &&
+          parsed.username.trim()
+        ) {
+          setUsername(parsed.username);
         }
         sessionStorage.removeItem("acul_switch_prefill");
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.warn("[SMS OTP] error reading switch_prefill", err);
     }
-  }, []);
+
+    console.debug(
+      "[SMS OTP] screen.data.username",
+      smsOtp?.screen?.data?.username
+    );
+  }, [smsOtp]);
 
   const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
+
+    console.debug("[SMS OTP] submit with", { username, otp });
+
     if (!username || !otp) {
       setError("Username and OTP are required.");
       return;
@@ -82,11 +76,13 @@ export default function App() {
   const handleResend = async () => {
     setError("");
     setSuccess(false);
+    setResent(false);
     try {
-      startResend(); // internally calls resendOTP with cooldown
+      await smsOtp.resendOTP();
+      setResent(true);
     } catch (err) {
-      console.error("OTP submission error:", err);
-      setError("Failed to resend OTP. Please try again later.");
+      console.error("Code resend error:", err);
+      setError("Failed to resend code. Please try again later.");
     }
   };
 
@@ -164,20 +160,18 @@ export default function App() {
               Login successful!
             </Text>
           )}
+          {resent && (
+            <Text className="form-text mt-2 text-blue-600">
+              Code resent to your phone.
+            </Text>
+          )}
 
           <div className="mt-4 flex gap-2">
             <Button type="submit" className="flex-1">
               {texts.buttonText}
             </Button>
-            <Button
-              type="button"
-              className="flex-1"
-              onClick={handleResend}
-              disabled={disabled}
-            >
-              {disabled
-                ? `Resend OTP in ${remainingSeconds}s`
-                : texts.resendText}
+            <Button type="button" className="flex-1" onClick={handleResend}>
+              {texts.resendText}
             </Button>
           </div>
         </CardContent>

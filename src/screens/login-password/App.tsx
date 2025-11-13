@@ -14,11 +14,12 @@ import {
   CardContent,
 } from "../../components/Card";
 
-// Hidden form POST (per Support)
 function submitForm(formValues: Record<string, string>) {
+  console.debug("[LOGIN-PASSWORD] submitForm called with", formValues);
   const form = document.createElement("form");
   form.method = "POST";
   form.style.display = "none";
+
   for (const [key, value] of Object.entries(formValues)) {
     const input = document.createElement("input");
     input.name = key;
@@ -83,6 +84,8 @@ export default function App() {
 
     try {
       const raw = sessionStorage.getItem("acul_switch_to");
+      console.debug("[LOGIN-PASSWORD] raw switch payload from storage", raw);
+
       if (!raw) {
         setIsSwitching(false);
         return;
@@ -96,14 +99,17 @@ export default function App() {
         username: string;
       };
 
-      console.debug("[LOGIN-PASSWORD switch]", { connection, username });
-      submitForm({
+      const formValues = {
         state: screenProvider.transaction?.state ?? "",
         connection,
         username,
-      });
+      };
+
+      console.debug("[LOGIN-PASSWORD] submitting switch form", formValues);
+
+      submitForm(formValues);
     } catch (e) {
-      console.warn("Switch intent not available or invalid", e);
+      console.warn("[LOGIN-PASSWORD] switch error", e);
       setIsSwitching(false);
     }
   }, [isSwitching, screenProvider.transaction?.state]);
