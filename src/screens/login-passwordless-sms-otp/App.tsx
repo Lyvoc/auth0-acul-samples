@@ -52,6 +52,7 @@ export default function App() {
           username: string;
         };
         if (connection === "sms" && typeof u === "string" && u.trim()) {
+          console.debug("[SMS OTP prefill]", { connection, u });
           setUsername(u);
         }
         sessionStorage.removeItem("acul_switch_prefill");
@@ -59,15 +60,7 @@ export default function App() {
     } catch {
       /* ignore */
     }
-
-    if (!username) {
-      const fromCtx = smsOtp?.screen?.data?.username;
-      if (typeof fromCtx === "string" && fromCtx.trim()) {
-        setUsername(fromCtx);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [smsOtp]);
+  }, []);
 
   const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();

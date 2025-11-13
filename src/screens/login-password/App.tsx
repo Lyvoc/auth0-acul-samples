@@ -78,9 +78,9 @@ export default function App() {
 
   const identifier = screenProvider.screen.data?.username ?? "";
 
-  // Auto-switch if intent exists. Clear BEFORE submit and keep hidden while switching.
   useEffect(() => {
     if (!isSwitching) return;
+
     try {
       const raw = sessionStorage.getItem("acul_switch_to");
       if (!raw) {
@@ -88,7 +88,6 @@ export default function App() {
         return;
       }
 
-      // Copy to a prefill key for the next page, then clear the trigger key
       sessionStorage.setItem("acul_switch_prefill", raw);
       sessionStorage.removeItem("acul_switch_to");
 
@@ -97,10 +96,11 @@ export default function App() {
         username: string;
       };
 
+      console.debug("[LOGIN-PASSWORD switch]", { connection, username });
       submitForm({
         state: screenProvider.transaction?.state ?? "",
         connection,
-        username, // phone for sms, email for email
+        username,
       });
     } catch (e) {
       console.warn("Switch intent not available or invalid", e);
