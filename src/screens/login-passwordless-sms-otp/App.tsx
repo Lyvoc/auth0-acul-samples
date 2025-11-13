@@ -79,7 +79,7 @@ export default function App() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="form-input"
-              placeholder="+15551234567"
+              placeholder="+33663XXXXXX"
             />
           </div>
 

@@ -93,7 +93,7 @@ export default function App() {
         {
           type: "passwordless_phone",
           connection: "sms",
-          value: "+15551234567",
+          value: "+33663936646",
         },
         { type: "enterprise", connection: "acme-saml" },
       ];
