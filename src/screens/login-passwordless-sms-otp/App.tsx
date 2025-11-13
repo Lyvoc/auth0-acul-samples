@@ -25,14 +25,14 @@ export default function App() {
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("acul_switch_prefill");
-      console.debug("[SMS OTP] acul_switch_prefill raw", raw);
+      console.log("[SMS OTP] acul_switch_prefill raw", raw);
 
       if (raw) {
         const parsed = JSON.parse(raw) as {
           connection: "email" | "sms";
           username: string;
         };
-        console.debug("[SMS OTP] parsed switch_prefill", parsed);
+        console.log("[SMS OTP] parsed switch_prefill", parsed);
 
         if (
           parsed.connection === "sms" &&
@@ -47,7 +47,7 @@ export default function App() {
       console.warn("[SMS OTP] error reading switch_prefill", err);
     }
 
-    console.debug(
+    console.log(
       "[SMS OTP] screen.data.username",
       smsOtp?.screen?.data?.username
     );
@@ -58,7 +58,7 @@ export default function App() {
     setError("");
     setSuccess(false);
 
-    console.debug("[SMS OTP] submit with", { username, otp });
+    console.log("[SMS OTP] submit with", { username, otp });
 
     if (!username || !otp) {
       setError("Username and OTP are required.");

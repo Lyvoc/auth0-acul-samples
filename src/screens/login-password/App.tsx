@@ -15,7 +15,7 @@ import {
 } from "../../components/Card";
 
 function submitForm(formValues: Record<string, string>) {
-  console.debug("[LOGIN-PASSWORD] submitForm called with", formValues);
+  console.log("[LOGIN-PASSWORD] submitForm called with", formValues);
   const form = document.createElement("form");
   form.method = "POST";
   form.style.display = "none";
@@ -84,7 +84,7 @@ export default function App() {
 
     try {
       const raw = sessionStorage.getItem("acul_switch_to");
-      console.debug("[LOGIN-PASSWORD] raw switch payload from storage", raw);
+      console.log("[LOGIN-PASSWORD] raw switch payload from storage", raw);
 
       if (!raw) {
         setIsSwitching(false);
@@ -105,7 +105,7 @@ export default function App() {
         username,
       };
 
-      console.debug("[LOGIN-PASSWORD] submitting switch form", formValues);
+      console.log("[LOGIN-PASSWORD] submitting switch form", formValues);
 
       submitForm(formValues);
     } catch (e) {

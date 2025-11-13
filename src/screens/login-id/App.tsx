@@ -168,7 +168,7 @@ export default function App() {
 
   const choosePasswordlessEmail = async (email: string) => {
     const payload = { connection: "email" as const, username: email };
-    console.debug("[LOGIN-ID] choosePasswordlessEmail payload", payload);
+    console.log("[LOGIN-ID] choosePasswordlessEmail payload", payload);
     sessionStorage.setItem("acul_switch_to", JSON.stringify(payload));
     await toLoginPassword(email);
   };
@@ -188,7 +188,7 @@ export default function App() {
     }
 
     const payload = { connection: "sms" as const, username: phone };
-    console.debug("[LOGIN-ID] choosePasswordlessSms payload", payload, {
+    console.log("[LOGIN-ID] choosePasswordlessSms payload", payload, {
       emailToReachPassword,
     });
 
