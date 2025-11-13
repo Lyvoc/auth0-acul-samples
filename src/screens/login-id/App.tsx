@@ -95,7 +95,7 @@ export default function App() {
           connection: "sms",
           value: "+33663936646",
         },
-        { type: "enterprise", connection: "acme-saml" },
+        { type: "enterprise", connection: "enterprise" },
       ];
       setMethods(fallbackMethods);
     } finally {
