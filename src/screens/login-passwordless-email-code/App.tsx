@@ -13,6 +13,32 @@ import {
   CardContent,
 } from "../../components/Card";
 
+function goBackToLoginId(fallbackHref?: string) {
+  try {
+    const url = new URL(globalThis.location.href);
+    const state = url.searchParams.get("state");
+
+    if (state) {
+      const target = `${
+        url.origin
+      }/u/login/identifier?state=${encodeURIComponent(state)}`;
+      console.log("[BACK] Redirecting to login-id", target);
+      globalThis.location.href = target;
+      return;
+    }
+
+    console.log("[BACK] No state found in URL, using fallback/backLink");
+  } catch (e) {
+    console.warn("[BACK] Failed to parse URL, using fallback/backLink", e);
+  }
+
+  if (fallbackHref) {
+    globalThis.location.href = fallbackHref;
+  } else {
+    history.back();
+  }
+}
+
 export default function App() {
   const emailCode = useMemo(() => new LoginPasswordlessEmailCode(), []);
 
@@ -130,9 +156,8 @@ export default function App() {
             type="button"
             className="mt-6"
             onClick={() => {
-              const href = emailCode.screen?.editIdentifierLink;
-              if (href) globalThis.location.href = href;
-              else history.back();
+              const href = emailCode.screen?.editIdentifierLink ?? undefined;
+              goBackToLoginId(href);
             }}
           >
             ← Back to sign-in options

@@ -32,6 +32,32 @@ function submitForm(formValues: Record<string, string>) {
   form.submit();
 }
 
+function goBackToLoginId(fallbackHref?: string) {
+  try {
+    const url = new URL(globalThis.location.href);
+    const state = url.searchParams.get("state");
+
+    if (state) {
+      const target = `${
+        url.origin
+      }/u/login/identifier?state=${encodeURIComponent(state)}`;
+      console.log("[BACK] Redirecting to login-id", target);
+      globalThis.location.href = target;
+      return;
+    }
+
+    console.log("[BACK] No state found in URL, using fallback/backLink");
+  } catch (e) {
+    console.warn("[BACK] Failed to parse URL, using fallback/backLink", e);
+  }
+
+  if (fallbackHref) {
+    globalThis.location.href = fallbackHref;
+  } else {
+    history.back();
+  }
+}
+
 export default function App() {
   const screenProvider = useMemo(() => new ScreenProvider(), []);
   const [autoSwitching, setAutoSwitching] = useState(false);
@@ -128,7 +154,13 @@ export default function App() {
             <span className="inline-block ml-1 font-bold">{identifier}</span>
             <Link
               className="form-link ml-2"
-              href={screenProvider.screen.editIdentifierLink ?? "#"}
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                const href =
+                  screenProvider.screen.editIdentifierLink ?? undefined;
+                goBackToLoginId(href);
+              }}
             >
               {texts.editEmailText}
             </Link>

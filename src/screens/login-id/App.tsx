@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { LoginId } from "@auth0/auth0-acul-js";
 
 // UI Components
@@ -23,6 +23,12 @@ type Method =
 const WORKFLOW_URL =
   "https://lyvoc-test-oie.workflows.oktapreview.com/api/flo/c9e7af317f61fd63c6abc65ca6513da1/invoke?clientToken=c410f7961bdb213639b530505ddb489421304ff0e97902e05c4e9b19a1355131";
 
+type MethodsCache = {
+  state: string | null;
+  identifier: string;
+  methods: Method[];
+};
+
 export default function App() {
   const screenManager = useMemo(() => new LoginId(), []);
 
@@ -45,11 +51,32 @@ export default function App() {
       screenManager.screen.texts?.footerLinkText ?? "Create your account",
   };
 
+  // On mount: try to restore identifier + methods for this transaction state
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("acul_methods_cache");
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as MethodsCache;
+      const currentState = screenManager.transaction?.state ?? null;
+
+      if (parsed.state && currentState && parsed.state === currentState) {
+        console.log("[LOGIN-ID] Restoring methods from cache", parsed);
+        setIdentifier(parsed.identifier);
+        setMethods(parsed.methods);
+      } else {
+        console.log("[LOGIN-ID] Methods cache ignored (state mismatch)");
+      }
+    } catch (e) {
+      console.warn("[LOGIN-ID] Failed to parse methods cache", e);
+    }
+  }, [screenManager]);
+
   const formSubmitHandler = async (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
     setApiError(null);
-    setMethods(null); // reset methods when re-checking
+    setMethods(null);
 
     const input = event.target.querySelector(
       "input#identifier"
@@ -75,9 +102,27 @@ export default function App() {
         methods?: Method[];
       };
 
+      const finalIdentifier = payload.identifier || value;
+      const finalMethods = payload.methods ?? [];
+
       console.log("[LOGIN-ID] Methods payload =", payload);
-      setIdentifier(payload.identifier || value);
-      setMethods(payload.methods ?? []);
+      console.log("[LOGIN-ID] Final identifier/methods =", {
+        finalIdentifier,
+        finalMethods,
+      });
+
+      setIdentifier(finalIdentifier);
+      setMethods(finalMethods);
+
+      // Cache for this transaction's state so we can come back without re-API
+      const state = screenManager.transaction?.state ?? null;
+      const cache: MethodsCache = {
+        state,
+        identifier: finalIdentifier,
+        methods: finalMethods,
+      };
+      sessionStorage.setItem("acul_methods_cache", JSON.stringify(cache));
+      console.log("[LOGIN-ID] Cached methods for state", cache);
     } catch (e) {
       console.error("[LOGIN-ID] Failed to fetch methods", e);
       setApiError("We couldn't look up your available sign-in methods.");
@@ -109,10 +154,7 @@ export default function App() {
     console.log("[LOGIN-ID] choosePasswordless", method);
 
     try {
-      // 1) Set transaction username to the method identifier (email or phone)
       await screenManager.login({ username: method.value });
-
-      // 2) Store only the connection type so login-password can auto-switch
       sessionStorage.setItem("acul_switch_connection", method.connection);
     } catch (e) {
       console.error("[LOGIN-ID] login() for passwordless failed", e);
@@ -121,9 +163,9 @@ export default function App() {
 
   const handleEditIdentifier = () => {
     console.log("[LOGIN-ID] Edit identifier clicked");
-    setMethods(null); // go back to step 1
+    setMethods(null); // go back to step 1 for this transaction
     setApiError(null);
-    // keep identifier value so user can adjust it
+    sessionStorage.removeItem("acul_methods_cache");
   };
 
   return (
@@ -135,7 +177,7 @@ export default function App() {
         </CardHeader>
 
         <CardContent className="card-content">
-          {/* Step 1: Identifier input (becomes read-only when methods are shown) */}
+          {/* Identifier input (step 1 editable, step 2 read-only) */}
           <div className="form-group">
             <Label htmlFor="identifier" className="form-label">
               {texts.emailPlaceholder}
@@ -168,7 +210,7 @@ export default function App() {
             )}
           </div>
 
-          {/* Primary submit button: only visible on step 1 */}
+          {/* Continue button only on step 1 */}
           {!hasMethods && (
             <Button type="submit" className="form-button" disabled={loading}>
               {loading ? "Checking…" : texts.buttonText}
@@ -179,7 +221,7 @@ export default function App() {
             <Text className="form-text mt-4 text-red-600">{apiError}</Text>
           )}
 
-          {/* Step 2: Show available methods */}
+          {/* Step 2: Choose method */}
           {hasMethods && (
             <div className="mt-6">
               <Text className="form-text mb-2">Choose a sign-in method:</Text>

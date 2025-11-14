@@ -151,7 +151,8 @@ export default function App() {
           <Button
             type="button"
             className="mt-6"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               const href = smsOtp.screen?.backLink ?? undefined;
               goBackToLoginId(href);
             }}
