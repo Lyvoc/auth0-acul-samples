@@ -104,6 +104,7 @@ export default function App() {
               type="text"
               required
               value={username}
+              readOnly
               onChange={(e) => setUsername(e.target.value)}
               className="form-input"
               placeholder="+33663XXXXXX"

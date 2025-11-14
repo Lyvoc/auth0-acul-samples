@@ -81,6 +81,7 @@ export default function App() {
               type="email"
               className="form-input"
               value={email}
+              readOnly
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>

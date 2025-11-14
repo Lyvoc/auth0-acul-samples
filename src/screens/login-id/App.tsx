@@ -15,7 +15,7 @@ import {
 } from "../../components/Card";
 
 type Method =
-  | { type: "password" }
+  | { type: "password"; connection?: string; value?: string }
   | { type: "passwordless_email"; connection: string; value: string }
   | { type: "passwordless_phone"; connection: string; value: string }
   | { type: "enterprise"; connection: string };
@@ -30,6 +30,8 @@ export default function App() {
   const [methods, setMethods] = useState<Method[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  const hasMethods = !!(methods && methods.length > 0);
 
   const texts = {
     title: screenManager.screen.texts?.title ?? "Welcome",
@@ -47,7 +49,7 @@ export default function App() {
     event.preventDefault();
     setLoading(true);
     setApiError(null);
-    setMethods(null);
+    setMethods(null); // reset methods when re-checking
 
     const input = event.target.querySelector(
       "input#identifier"
@@ -69,16 +71,16 @@ export default function App() {
       }
 
       const payload = (await res.json()) as {
-        identifier: string;
-        methods: Method[];
+        identifier?: string;
+        methods?: Method[];
       };
 
       console.log("[LOGIN-ID] Methods payload =", payload);
       setIdentifier(payload.identifier || value);
-      setMethods(payload.methods || []);
+      setMethods(payload.methods ?? []);
     } catch (e) {
       console.error("[LOGIN-ID] Failed to fetch methods", e);
-      setApiError("We couldn't look up your available sign-in methods from.");
+      setApiError("We couldn't look up your available sign-in methods.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +109,7 @@ export default function App() {
     console.log("[LOGIN-ID] choosePasswordless", method);
 
     try {
-      // 1) Make the transaction username = the value from API (email or phone)
+      // 1) Set transaction username to the method identifier (email or phone)
       await screenManager.login({ username: method.value });
 
       // 2) Store only the connection type so login-password can auto-switch
@@ -115,6 +117,13 @@ export default function App() {
     } catch (e) {
       console.error("[LOGIN-ID] login() for passwordless failed", e);
     }
+  };
+
+  const handleEditIdentifier = () => {
+    console.log("[LOGIN-ID] Edit identifier clicked");
+    setMethods(null); // go back to step 1
+    setApiError(null);
+    // keep identifier value so user can adjust it
   };
 
   return (
@@ -126,7 +135,7 @@ export default function App() {
         </CardHeader>
 
         <CardContent className="card-content">
-          {/* Step 1: Identifier input */}
+          {/* Step 1: Identifier input (becomes read-only when methods are shown) */}
           <div className="form-group">
             <Label htmlFor="identifier" className="form-label">
               {texts.emailPlaceholder}
@@ -135,27 +144,47 @@ export default function App() {
               id="identifier"
               name="identifier"
               placeholder="john@example.com or +15551234567"
-              autoFocus
-              className="form-input"
+              autoFocus={!hasMethods}
+              className={
+                hasMethods
+                  ? "form-input opacity-50 pointer-events-none bg-gray-100"
+                  : "form-input"
+              }
               autoComplete="username"
               inputMode="email"
+              value={identifier}
+              readOnly={hasMethods}
+              onChange={(e) => setIdentifier(e.target.value)}
             />
+
+            {hasMethods && (
+              <Button
+                type="button"
+                className="mt-2 text-sm underline px-0 shadow-none bg-transparent hover:bg-transparent"
+                onClick={handleEditIdentifier}
+              >
+                Edit identifier
+              </Button>
+            )}
           </div>
 
-          <Button type="submit" className="form-button" disabled={loading}>
-            {loading ? "Checking…" : texts.buttonText}
-          </Button>
+          {/* Primary submit button: only visible on step 1 */}
+          {!hasMethods && (
+            <Button type="submit" className="form-button" disabled={loading}>
+              {loading ? "Checking…" : texts.buttonText}
+            </Button>
+          )}
 
           {apiError && (
             <Text className="form-text mt-4 text-red-600">{apiError}</Text>
           )}
 
           {/* Step 2: Show available methods */}
-          {methods && (
+          {hasMethods && (
             <div className="mt-6">
               <Text className="form-text mb-2">Choose a sign-in method:</Text>
               <div className="grid gap-2">
-                {methods.map((m, idx) => {
+                {methods!.map((m, idx) => {
                   let label: string;
                   if (m.type === "password") {
                     label = "Password";
