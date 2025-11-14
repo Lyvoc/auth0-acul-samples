@@ -20,6 +20,9 @@ type Method =
   | { type: "passwordless_phone"; connection: string; value: string }
   | { type: "enterprise"; connection: string };
 
+const WORKFLOW_URL =
+  "https://lyvoc-test-oie.workflows.oktapreview.com/api/flo/c9e7af317f61fd63c6abc65ca6513da1/invoke?clientToken=c410f7961bdb213639b530505ddb489421304ff0e97902e05c4e9b19a1355131";
+
 export default function App() {
   const screenManager = useMemo(() => new LoginId(), []);
 
@@ -55,14 +58,11 @@ export default function App() {
     console.log("[LOGIN-ID] Identifier entered =", value);
 
     try {
-      const res = await fetch(
-        "https://test-api.free.beeceptor.com/check-methods",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ identifier: value }),
-        }
-      );
+      const res = await fetch(WORKFLOW_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: value }),
+      });
 
       if (!res.ok) {
         throw new Error(`Methods API responded ${res.status}`);
@@ -78,26 +78,7 @@ export default function App() {
       setMethods(payload.methods || []);
     } catch (e) {
       console.error("[LOGIN-ID] Failed to fetch methods", e);
-      setApiError(
-        "We couldn't look up your available sign-in methods. Using defaults."
-      );
-
-      // Fallback with your sample payload shape
-      const fallbackMethods: Method[] = [
-        { type: "password" },
-        {
-          type: "passwordless_email",
-          connection: "email",
-          value: value.includes("@") ? value : "jeremie.poisson@lyvoc.com",
-        },
-        {
-          type: "passwordless_phone",
-          connection: "sms",
-          value: "+33663936646",
-        },
-        { type: "enterprise", connection: "enterprise" },
-      ];
-      setMethods(fallbackMethods);
+      setApiError("We couldn't look up your available sign-in methods from.");
     } finally {
       setLoading(false);
     }
